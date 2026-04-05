@@ -52,7 +52,7 @@ function Icon({ d, size = 20, color = "currentColor", strokeWidth = 1.8 }) {
 
 function Stepper({ currentStage, lockedStages }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 0, padding: "20px 0 16px" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 0, padding: "14px 0 10px" }}>
       {STAGE_META.map((s, i) => {
         const locked = lockedStages.includes(s.key);
         const active = i === currentStage;
@@ -61,7 +61,7 @@ function Stepper({ currentStage, lockedStages }) {
           <div key={s.key} style={{ display: "flex", alignItems: "center", flex: 1 }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}>
               <div style={{
-                width: 36, height: 36, borderRadius: "50%",
+                width: 30, height: 30, borderRadius: "50%",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 background: locked ? `linear-gradient(135deg, ${C.greenMid}, ${C.green})` : active ? `linear-gradient(135deg, ${C.amber}, ${C.amberLight})` : C.borderLight,
                 boxShadow: locked ? "0 2px 8px rgba(27,67,50,0.25)" : active ? "0 2px 8px rgba(231,111,81,0.3)" : "none",
@@ -71,11 +71,11 @@ function Stepper({ currentStage, lockedStages }) {
                 {locked ? (
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"><path d="M5 13l4 4L19 7"/></svg>
                 ) : (
-                  <span style={{ fontSize: 14, filter: future ? "grayscale(1) opacity(0.4)" : "none" }}>{s.emoji}</span>
+                  <span style={{ fontSize: 12, filter: future ? "grayscale(1) opacity(0.4)" : "none" }}>{s.emoji}</span>
                 )}
               </div>
               <span style={{
-                fontSize: 10, marginTop: 5, fontWeight: active ? 700 : 500,
+                fontSize: 9, marginTop: 4, fontWeight: active ? 700 : 500,
                 color: locked ? C.greenMid : active ? C.amber : C.mutedLight,
                 transition: "all 0.3s",
                 letterSpacing: active ? "0.3px" : "0",
@@ -151,9 +151,9 @@ function ProgressBanner({ stage, destination }) {
 
   return (
     <div className="fade-in-scale" style={{
-      margin: "0 0 16px",
-      padding: "20px 24px",
-      borderRadius: "var(--radius-lg)",
+      margin: "0 0 12px",
+      padding: "16px 16px",
+      borderRadius: 16,
       background: s >= 5
         ? "linear-gradient(135deg, #1B4332 0%, #2D6A4F 50%, #40916C 100%)"
         : "linear-gradient(135deg, #1A2B3A 0%, #0F1923 100%)",
@@ -166,8 +166,8 @@ function ProgressBanner({ stage, destination }) {
       <div style={{ position: "absolute", bottom: -30, right: 40, width: 60, height: 60, borderRadius: "50%", background: "rgba(255,255,255,0.03)" }}/>
 
       <div style={{ position: "relative", zIndex: 1 }}>
-        <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 4, letterSpacing: "-0.3px" }}>{msg.text}</div>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginBottom: 16, fontWeight: 500 }}>{msg.sub}</div>
+        <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 3, letterSpacing: "-0.3px" }}>{msg.text}</div>
+        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginBottom: 12, fontWeight: 500 }}>{msg.sub}</div>
 
         {/* Progress bar */}
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -742,60 +742,60 @@ function TripDashboard({ trip, user, onUpdate, onBack }) {
     <div style={{ minHeight: "100vh", background: C.bg }}>
       {/* Header */}
       <div className="glass-dark" style={{
-        padding: "16px 20px 20px",
+        padding: "14px 16px 16px",
         background: "linear-gradient(135deg, #0F1923 0%, #1A2B3A 100%)",
-        borderRadius: "0 0 24px 24px",
+        borderRadius: "0 0 20px 20px",
         boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
       }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <button onClick={onBack} style={{
             background: "rgba(255,255,255,0.08)", border: "none", color: "#fff",
-            cursor: "pointer", width: 36, height: 36, borderRadius: 10,
+            cursor: "pointer", width: 34, height: 34, borderRadius: 10,
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
-          <div style={{ textAlign: "center", flex: 1 }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px" }}>{trip.name}</div>
+          <div style={{ textAlign: "center", flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{trip.name}</div>
             <button onClick={copyCode} style={{
               background: "rgba(255,255,255,0.08)", border: "none",
               color: "rgba(255,255,255,0.5)", cursor: "pointer",
-              fontSize: 11, padding: "3px 12px", borderRadius: 8, marginTop: 4,
+              fontSize: 10, padding: "2px 10px", borderRadius: 6, marginTop: 3,
               fontWeight: 500,
             }}>Code: {trip.id} · tap to copy</button>
           </div>
           <button onClick={shareWA} style={{
             background: "linear-gradient(135deg, #25D366, #128C7E)", border: "none",
-            color: "#fff", cursor: "pointer", fontSize: 11, fontWeight: 700,
-            padding: "8px 14px", borderRadius: 10,
+            color: "#fff", cursor: "pointer", fontSize: 10, fontWeight: 700,
+            padding: "7px 12px", borderRadius: 10,
             boxShadow: "0 2px 8px rgba(37,211,102,0.3)",
             display: "flex", alignItems: "center", gap: 4,
           }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg>
             Share
           </button>
         </div>
-        <div style={{ marginTop: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <MemberAvatars members={trip.members} />
+        <div style={{ marginTop: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <MemberAvatars members={trip.members} size={28} />
           <span style={{
-            fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500,
-            background: "rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 6,
+            fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 500,
+            background: "rgba(255,255,255,0.06)", padding: "3px 8px", borderRadius: 6,
           }}>{trip.members.length} member{trip.members.length !== 1 ? "s" : ""}</span>
         </div>
       </div>
 
-      <div style={{ padding: "0 20px" }}>
+      <div style={{ padding: "0 16px" }}>
         <Stepper currentStage={currentIdx} lockedStages={lockedStages} />
       </div>
 
-      <div style={{ padding: "0 20px" }}>
+      <div style={{ padding: "0 16px" }}>
         <ProgressBanner stage={lockedStages.length + (allDone ? 1 : 0)} destination={trip.stages.destination?.locked} />
       </div>
 
       {/* All done celebration */}
       {allDone && (
         <div className="fade-in-scale" style={{
-          margin: "0 20px 16px", padding: 24,
+          margin: "0 16px 12px", padding: 20,
           background: "linear-gradient(135deg, #1B4332, #2D6A4F, #40916C)",
           borderRadius: "var(--radius-xl)", textAlign: "center",
           boxShadow: "0 8px 32px rgba(27,67,50,0.3)",
@@ -826,20 +826,20 @@ function TripDashboard({ trip, user, onUpdate, onBack }) {
         </div>
       )}
 
-      <div style={{ padding: "0 20px 40px" }}>
+      <div style={{ padding: "0 16px 32px" }}>
         {/* Locked stages */}
-        <div className="stagger" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="stagger" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {lockedStages.map(key => (
             <div key={key} style={{
-              padding: "14px 18px", background: C.card,
-              borderRadius: "var(--radius-md)",
+              padding: "12px 14px", background: C.card,
+              borderRadius: 12,
               border: `1px solid ${C.borderLight}`,
               display: "flex", justifyContent: "space-between", alignItems: "center",
               boxShadow: "var(--shadow-sm)",
             }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{
-                  width: 32, height: 32, borderRadius: 8,
+                  width: 28, height: 28, borderRadius: 7,
                   background: `linear-gradient(135deg, ${C.greenPale}, rgba(82,183,136,0.15))`,
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
@@ -860,39 +860,38 @@ function TripDashboard({ trip, user, onUpdate, onBack }) {
         {currentKey && !allDone && (
           <div className="fade-in-scale" style={{
             background: C.card,
-            borderRadius: "var(--radius-xl)",
+            borderRadius: 18,
             border: `1.5px solid ${C.borderLight}`,
-            overflow: "hidden", marginTop: lockedStages.length > 0 ? 12 : 0,
-            boxShadow: "var(--shadow-md)",
+            overflow: "hidden", marginTop: lockedStages.length > 0 ? 10 : 0,
+            boxShadow: "var(--shadow-sm)",
           }}>
             <div style={{
-              padding: "16px 20px",
+              padding: "12px 16px",
               background: C.bgWarm,
               borderBottom: `1px solid ${C.borderLight}`,
               display: "flex", justifyContent: "space-between", alignItems: "center",
             }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 18 }}>{STAGE_META[currentIdx].emoji}</span>
-                <span style={{ fontWeight: 800, fontSize: 16, color: C.dark, letterSpacing: "-0.3px" }}>{STAGE_META[currentIdx].label}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 16 }}>{STAGE_META[currentIdx].emoji}</span>
+                <span style={{ fontWeight: 800, fontSize: 15, color: C.dark, letterSpacing: "-0.3px" }}>{STAGE_META[currentIdx].label}</span>
               </div>
               <span style={{
-                fontSize: 11, padding: "4px 12px", borderRadius: 20,
+                fontSize: 10, padding: "3px 10px", borderRadius: 16,
                 background: "linear-gradient(135deg, #FFECD2, #FFE0B2)",
                 color: C.amber, fontWeight: 700,
-                boxShadow: "0 1px 4px rgba(231,111,81,0.15)",
               }}>Active</span>
             </div>
-            <div style={{ padding: 20 }}>
+            <div style={{ padding: 16 }}>
               {currentKey === "dates" && <DateStage trip={trip} user={user} onUpdate={onUpdate} />}
               {currentKey === "destination" && <DestinationStage trip={trip} user={user} onUpdate={onUpdate} />}
               {currentKey === "budget" && <BudgetStage trip={trip} user={user} onUpdate={onUpdate} />}
               {(currentKey === "plan" || currentKey === "confirm") && <PlanStage trip={trip} user={user} onUpdate={onUpdate} />}
             </div>
             {isPlanner && (
-              <div style={{ padding: "16px 20px", borderTop: `1px solid ${C.borderLight}` }}>
+              <div style={{ padding: "12px 16px", borderTop: `1px solid ${C.borderLight}` }}>
                 <button onClick={() => lockStage(currentKey)} style={{
-                  width: "100%", padding: 15,
-                  borderRadius: "var(--radius-md)",
+                  width: "100%", padding: 14,
+                  borderRadius: 12,
                   background: `linear-gradient(135deg, ${C.greenMid}, ${C.green})`,
                   color: "#fff", border: "none", fontSize: 15, fontWeight: 700,
                   cursor: "pointer", letterSpacing: "-0.2px",
@@ -1008,156 +1007,157 @@ export default function App() {
   }
 
   if (screen === "dashboard" && trip && user) {
-    return <TripDashboard trip={trip} user={user} onUpdate={handleUpdate} onBack={() => { setScreen("home"); window.history.replaceState({}, "", "/"); }} />;
+    return (
+      <div className="mobile-shell">
+        <TripDashboard trip={trip} user={user} onUpdate={handleUpdate} onBack={() => { setScreen("home"); window.history.replaceState({}, "", "/"); }} />
+      </div>
+    );
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column" }}>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 20px" }}>
-        {/* Hero */}
-        <div className="fade-in-up" style={{ textAlign: "center", marginBottom: 32 }}>
-          <div style={{
-            width: 72, height: 72, borderRadius: 20,
-            background: "linear-gradient(135deg, #1B4332, #2D6A4F, #40916C)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            margin: "0 auto 16px",
-            boxShadow: "0 8px 32px rgba(27,67,50,0.25)",
-          }}>
-            <span style={{ fontSize: 36 }}>🗺</span>
-          </div>
-          <h1 style={{
-            fontSize: 30, fontWeight: 900, color: C.dark,
-            marginBottom: 6, letterSpacing: "-1px",
-            lineHeight: 1.1,
-          }}>
-            Plan Karo<br/>
-            <span className="gradient-text">Chalo</span>
-          </h1>
-          <p style={{
-            fontSize: 14, color: C.muted, marginBottom: 0,
-            textAlign: "center", lineHeight: 1.6, fontWeight: 500,
-            maxWidth: 260, margin: "0 auto",
-          }}>
-            Group trips, decided together.<br/>No app download. No chaos.
-          </p>
-        </div>
-
-        <div className="fade-in-up" style={{ width: "100%", maxWidth: 380, animationDelay: "100ms" }}>
-          {/* Name input */}
-          <div style={{
-            marginBottom: 14, position: "relative",
-          }}>
-            <input value={userName} onChange={e => { setUserName(e.target.value); setError(""); }} placeholder="Your name" style={{
-              width: "100%", padding: "14px 18px 14px 46px",
-              borderRadius: "var(--radius-md)",
-              border: `1.5px solid ${C.border}`,
-              fontSize: 15, outline: "none", background: "#fff",
-              boxSizing: "border-box", fontWeight: 500,
-              boxShadow: "var(--shadow-sm)",
-            }} />
+    <div className="mobile-shell">
+      <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 16px" }}>
+          {/* Hero */}
+          <div className="fade-in-up" style={{ textAlign: "center", marginBottom: 28 }}>
             <div style={{
-              position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)",
-              color: C.mutedLight,
+              width: 64, height: 64, borderRadius: 18,
+              background: "linear-gradient(135deg, #1B4332, #2D6A4F, #40916C)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              margin: "0 auto 14px",
+              boxShadow: "0 8px 32px rgba(27,67,50,0.25)",
             }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span style={{ fontSize: 32 }}>🗺</span>
             </div>
+            <h1 style={{
+              fontSize: 26, fontWeight: 900, color: C.dark,
+              marginBottom: 6, letterSpacing: "-0.8px",
+              lineHeight: 1.1,
+            }}>
+              Plan Karo <span className="gradient-text">Chalo</span>
+            </h1>
+            <p style={{
+              fontSize: 13, color: C.muted,
+              textAlign: "center", lineHeight: 1.5, fontWeight: 500,
+              maxWidth: 240, margin: "0 auto",
+            }}>
+              Group trips, decided together.<br/>No app download. No chaos.
+            </p>
           </div>
 
-          {/* Create trip card */}
-          <div style={{
-            background: C.card, borderRadius: "var(--radius-xl)",
-            border: `1px solid ${C.borderLight}`,
-            padding: 24, marginBottom: 14,
-            boxShadow: "var(--shadow-md)",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+          <div className="fade-in-up" style={{ width: "100%", animationDelay: "100ms" }}>
+            {/* Name input */}
+            <div style={{ marginBottom: 12, position: "relative" }}>
+              <input value={userName} onChange={e => { setUserName(e.target.value); setError(""); }} placeholder="Your name" style={{
+                width: "100%", padding: "13px 16px 13px 42px",
+                borderRadius: 12,
+                border: `1.5px solid ${C.border}`,
+                fontSize: 15, outline: "none", background: "#fff",
+                boxSizing: "border-box", fontWeight: 500,
+                boxShadow: "var(--shadow-sm)",
+              }} />
               <div style={{
-                width: 36, height: 36, borderRadius: 10,
-                background: `linear-gradient(135deg, ${C.greenPale}, rgba(82,183,136,0.2))`,
-                display: "flex", alignItems: "center", justifyContent: "center",
+                position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)",
+                color: C.mutedLight,
               }}>
-                <span style={{ fontSize: 18 }}>✈</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               </div>
-              <span style={{ fontWeight: 800, fontSize: 16, color: C.dark, letterSpacing: "-0.3px" }}>Start a new trip</span>
             </div>
-            <input value={tripName} onChange={e => { setTripName(e.target.value); setError(""); }} placeholder='Trip name (e.g. "Goa June")' style={{
-              width: "100%", padding: "13px 16px",
-              borderRadius: "var(--radius-sm)",
-              border: `1.5px solid ${C.border}`,
-              fontSize: 14, outline: "none", marginBottom: 12,
-              boxSizing: "border-box", fontWeight: 500,
-            }} />
-            <button onClick={createTrip} disabled={loading} style={{
-              width: "100%", padding: 15,
-              borderRadius: "var(--radius-md)",
-              background: `linear-gradient(135deg, ${C.greenMid}, ${C.green})`,
-              color: "#fff", border: "none", fontSize: 15, fontWeight: 700,
-              cursor: "pointer", opacity: loading ? 0.6 : 1,
-              boxShadow: "0 4px 16px rgba(27,67,50,0.25)",
-              letterSpacing: "-0.2px",
-            }}>
-              {loading ? "Creating..." : "Create trip"}
-            </button>
-          </div>
 
-          {/* Join trip card */}
-          <div style={{
-            background: C.card, borderRadius: "var(--radius-xl)",
-            border: `1px solid ${C.borderLight}`,
-            padding: 24,
-            boxShadow: "var(--shadow-md)",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 10,
-                background: `linear-gradient(135deg, ${C.amberPale}, rgba(244,162,97,0.2))`,
-                display: "flex", alignItems: "center", justifyContent: "center",
+            {/* Create trip card */}
+            <div style={{
+              background: C.card, borderRadius: 18,
+              border: `1px solid ${C.borderLight}`,
+              padding: "18px 16px", marginBottom: 10,
+              boxShadow: "var(--shadow-sm)",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: 8,
+                  background: `linear-gradient(135deg, ${C.greenPale}, rgba(82,183,136,0.2))`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <span style={{ fontSize: 16 }}>✈</span>
+                </div>
+                <span style={{ fontWeight: 800, fontSize: 15, color: C.dark, letterSpacing: "-0.3px" }}>Start a new trip</span>
+              </div>
+              <input value={tripName} onChange={e => { setTripName(e.target.value); setError(""); }} placeholder='Trip name (e.g. "Goa June")' style={{
+                width: "100%", padding: "12px 14px",
+                borderRadius: 8,
+                border: `1.5px solid ${C.border}`,
+                fontSize: 14, outline: "none", marginBottom: 10,
+                boxSizing: "border-box", fontWeight: 500,
+              }} />
+              <button onClick={createTrip} disabled={loading} style={{
+                width: "100%", padding: 14,
+                borderRadius: 12,
+                background: `linear-gradient(135deg, ${C.greenMid}, ${C.green})`,
+                color: "#fff", border: "none", fontSize: 15, fontWeight: 700,
+                cursor: "pointer", opacity: loading ? 0.6 : 1,
+                boxShadow: "0 4px 16px rgba(27,67,50,0.25)",
               }}>
-                <span style={{ fontSize: 18 }}>🤝</span>
-              </div>
-              <span style={{ fontWeight: 800, fontSize: 16, color: C.dark, letterSpacing: "-0.3px" }}>Join a trip</span>
+                {loading ? "Creating..." : "Create trip"}
+              </button>
             </div>
-            <input value={joinCode} onChange={e => { setJoinCode(e.target.value.toUpperCase()); setError(""); }} placeholder="Enter 6-letter code" maxLength={6} style={{
-              width: "100%", padding: "13px 16px",
-              borderRadius: "var(--radius-sm)",
-              border: `1.5px solid ${C.border}`,
-              fontSize: 16, outline: "none", marginBottom: 12,
-              letterSpacing: 6, textTransform: "uppercase",
-              textAlign: "center", fontWeight: 800,
-              boxSizing: "border-box",
-            }} />
-            <button onClick={joinTrip} disabled={loading} style={{
-              width: "100%", padding: 15,
-              borderRadius: "var(--radius-md)",
-              background: `linear-gradient(135deg, ${C.amber}, ${C.amberLight})`,
-              color: "#fff", border: "none", fontSize: 15, fontWeight: 700,
-              cursor: "pointer", opacity: loading ? 0.6 : 1,
-              boxShadow: "0 4px 16px rgba(231,111,81,0.25)",
-              letterSpacing: "-0.2px",
-            }}>
-              {loading ? "Joining..." : "Join trip"}
-            </button>
-          </div>
 
-          {error && (
-            <div className="fade-in" style={{
-              marginTop: 14, padding: "12px 16px",
-              background: "linear-gradient(135deg, #FFEBEE, #FCE4EC)",
-              borderRadius: "var(--radius-sm)",
-              fontSize: 13, color: "#C62828", textAlign: "center",
-              fontWeight: 600, border: "1px solid #FFCDD2",
-            }}>{error}</div>
-          )}
+            {/* Join trip card */}
+            <div style={{
+              background: C.card, borderRadius: 18,
+              border: `1px solid ${C.borderLight}`,
+              padding: "18px 16px",
+              boxShadow: "var(--shadow-sm)",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: 8,
+                  background: `linear-gradient(135deg, ${C.amberPale}, rgba(244,162,97,0.2))`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <span style={{ fontSize: 16 }}>🤝</span>
+                </div>
+                <span style={{ fontWeight: 800, fontSize: 15, color: C.dark, letterSpacing: "-0.3px" }}>Join a trip</span>
+              </div>
+              <input value={joinCode} onChange={e => { setJoinCode(e.target.value.toUpperCase()); setError(""); }} placeholder="Enter 6-letter code" maxLength={6} style={{
+                width: "100%", padding: "12px 14px",
+                borderRadius: 8,
+                border: `1.5px solid ${C.border}`,
+                fontSize: 16, outline: "none", marginBottom: 10,
+                letterSpacing: 6, textTransform: "uppercase",
+                textAlign: "center", fontWeight: 800,
+                boxSizing: "border-box",
+              }} />
+              <button onClick={joinTrip} disabled={loading} style={{
+                width: "100%", padding: 14,
+                borderRadius: 12,
+                background: `linear-gradient(135deg, ${C.amber}, ${C.amberLight})`,
+                color: "#fff", border: "none", fontSize: 15, fontWeight: 700,
+                cursor: "pointer", opacity: loading ? 0.6 : 1,
+                boxShadow: "0 4px 16px rgba(231,111,81,0.25)",
+              }}>
+                {loading ? "Joining..." : "Join trip"}
+              </button>
+            </div>
+
+            {error && (
+              <div className="fade-in" style={{
+                marginTop: 12, padding: "10px 14px",
+                background: "linear-gradient(135deg, #FFEBEE, #FCE4EC)",
+                borderRadius: 8,
+                fontSize: 13, color: "#C62828", textAlign: "center",
+                fontWeight: 600, border: "1px solid #FFCDD2",
+              }}>{error}</div>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Footer */}
-      <div style={{
-        textAlign: "center", padding: "16px 20px 28px",
-        fontSize: 11, color: C.mutedLight, fontWeight: 500,
-        lineHeight: 1.6,
-      }}>
-        Built for Indian friend groups · Zero downloads · Share via WhatsApp
+        {/* Footer */}
+        <div style={{
+          textAlign: "center", padding: "12px 16px 24px",
+          fontSize: 11, color: C.mutedLight, fontWeight: 500,
+          lineHeight: 1.5,
+        }}>
+          Built for Indian friend groups · Zero downloads · Share via WhatsApp
+        </div>
       </div>
     </div>
   );

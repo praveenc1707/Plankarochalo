@@ -44,6 +44,27 @@ html, body, #root {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Mobile shell — centers a phone-sized frame on desktop */
+.mobile-shell {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100vh;
+  margin: 0 auto;
+  position: relative;
+  background: var(--bg);
+}
+@media (min-width: 500px) {
+  html, body {
+    background: #E8E4DC;
+  }
+  .mobile-shell {
+    min-height: 100vh;
+    box-shadow: 0 0 60px rgba(0,0,0,0.12), 0 0 20px rgba(0,0,0,0.06);
+    border-left: 1px solid var(--border-light);
+    border-right: 1px solid var(--border-light);
+  }
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
