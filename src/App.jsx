@@ -887,22 +887,47 @@ function TripDashboard({ trip, user, onUpdate, onBack }) {
               {currentKey === "budget" && <BudgetStage trip={trip} user={user} onUpdate={onUpdate} />}
               {(currentKey === "plan" || currentKey === "confirm") && <PlanStage trip={trip} user={user} onUpdate={onUpdate} />}
             </div>
-            {isPlanner && (
-              <div style={{ padding: "12px 16px", borderTop: `1px solid ${C.borderLight}` }}>
-                <button onClick={() => lockStage(currentKey)} style={{
-                  width: "100%", padding: 14,
-                  borderRadius: 12,
-                  background: `linear-gradient(135deg, ${C.greenMid}, ${C.green})`,
-                  color: "#fff", border: "none", fontSize: 15, fontWeight: 700,
-                  cursor: "pointer", letterSpacing: "-0.2px",
-                  boxShadow: "0 4px 16px rgba(27,67,50,0.25)",
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                }}>
-                  Lock {STAGE_META[currentIdx].label} & proceed
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
-                </button>
-              </div>
-            )}
+            {isPlanner && (() => {
+              const total = trip.members.length;
+              const threshold = Math.ceil(total * 0.5);
+              let responded = 0;
+              if (currentKey === "dates") {
+                responded = Object.keys(trip.stages.dates.availability || {}).filter(uid => {
+                  const arr = trip.stages.dates.availability[uid];
+                  return Array.isArray(arr) && arr.length > 0;
+                }).length;
+              } else if (currentKey === "destination") {
+                responded = Object.keys(trip.stages.destination.votes || {}).length;
+              } else if (currentKey === "budget") {
+                responded = Object.keys(trip.stages.budget.ranges || {}).length;
+              } else {
+                responded = Object.keys(trip.stages.confirm?.responses || {}).length;
+              }
+              const canLock = responded >= threshold;
+              return (
+                <div style={{ padding: "12px 16px", borderTop: `1px solid ${C.borderLight}` }}>
+                  <button onClick={() => canLock && lockStage(currentKey)} disabled={!canLock} style={{
+                    width: "100%", padding: 14,
+                    borderRadius: 12,
+                    background: canLock ? `linear-gradient(135deg, ${C.greenMid}, ${C.green})` : C.border,
+                    color: canLock ? "#fff" : C.muted, border: "none", fontSize: 15, fontWeight: 700,
+                    cursor: canLock ? "pointer" : "not-allowed", letterSpacing: "-0.2px",
+                    boxShadow: canLock ? "0 4px 16px rgba(27,67,50,0.25)" : "none",
+                    opacity: canLock ? 1 : 0.7,
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  }}>
+                    {canLock ? (
+                      <>
+                        Lock {STAGE_META[currentIdx].label} & proceed
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
+                      </>
+                    ) : (
+                      `Waiting — ${responded}/${total} responded (need ${threshold})`
+                    )}
+                  </button>
+                </div>
+              );
+            })()}
           </div>
         )}
 
