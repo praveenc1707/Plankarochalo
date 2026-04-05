@@ -197,27 +197,68 @@ function DateStage({ trip, user, onUpdate }) {
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth());
   const [year, setYear] = useState(now.getFullYear());
+  const [rangeStart, setRangeStart] = useState(null); // date string of first click
   const myDates = trip.stages.dates.availability?.[user.id] || [];
   const allAvail = trip.stages.dates.availability || {};
   const memberCount = trip.members.length;
   const days = getMonthDays(year, month);
   const firstDay = getFirstDay(year, month);
 
-  function toggleDate(day) {
-    const ds = `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-    const current = [...myDates];
-    const idx = current.indexOf(ds);
-    idx >= 0 ? current.splice(idx, 1) : current.push(ds);
-    const updated = { ...trip, stages: { ...trip.stages, dates: { ...trip.stages.dates, availability: { ...allAvail, [user.id]: current } } } };
-    onUpdate(updated);
+  function makeDateStr(y, m, d) {
+    return `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+  }
+
+  function getDatesInRange(startStr, endStr) {
+    const dates = [];
+    const start = new Date(startStr);
+    const end = new Date(endStr);
+    const lo = start <= end ? start : end;
+    const hi = start <= end ? end : start;
+    const cur = new Date(lo);
+    while (cur <= hi) {
+      dates.push(cur.toISOString().slice(0, 10));
+      cur.setDate(cur.getDate() + 1);
+    }
+    return dates;
+  }
+
+  function handleDateClick(day) {
+    const ds = makeDateStr(year, month, day);
+
+    // If clicking a date that's already in the range, clear the entire range
+    if (myDates.includes(ds) && !rangeStart) {
+      // Clear all selected dates
+      const updated = { ...trip, stages: { ...trip.stages, dates: { ...trip.stages.dates, availability: { ...allAvail, [user.id]: [] } } } };
+      onUpdate(updated);
+      return;
+    }
+
+    if (!rangeStart) {
+      // First click — set range start
+      setRangeStart(ds);
+      // Immediately select just this one date as preview
+      const updated = { ...trip, stages: { ...trip.stages, dates: { ...trip.stages.dates, availability: { ...allAvail, [user.id]: [ds] } } } };
+      onUpdate(updated);
+    } else {
+      // Second click — fill entire range
+      const rangeDates = getDatesInRange(rangeStart, ds);
+      const updated = { ...trip, stages: { ...trip.stages, dates: { ...trip.stages.dates, availability: { ...allAvail, [user.id]: rangeDates } } } };
+      onUpdate(updated);
+      setRangeStart(null);
+    }
   }
 
   function getOverlap(day) {
-    const ds = `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+    const ds = makeDateStr(year, month, day);
     let count = 0;
     Object.values(allAvail).forEach(arr => { if (arr?.includes?.(ds)) count++; });
     return count;
   }
+
+  // Sort myDates to find range endpoints
+  const sortedMyDates = [...myDates].sort();
+  const rangeFirst = sortedMyDates[0] || null;
+  const rangeLast = sortedMyDates[sortedMyDates.length - 1] || null;
 
   const bestWindow = (() => {
     const all = {};
@@ -227,6 +268,25 @@ function DateStage({ trip, user, onUpdate }) {
 
   return (
     <div className="fade-in">
+      {/* Range selection hint */}
+      <div style={{
+        marginBottom: 16, padding: "10px 14px",
+        background: rangeStart ? `linear-gradient(135deg, ${C.amberPale}, rgba(244,162,97,0.15))` : C.borderLight,
+        borderRadius: "var(--radius-sm)",
+        border: rangeStart ? `1px solid ${C.amberLight}` : `1px solid ${C.border}`,
+        fontSize: 12, fontWeight: 600,
+        color: rangeStart ? C.amber : C.muted,
+        textAlign: "center",
+        transition: "all 0.3s",
+      }}>
+        {rangeStart
+          ? `Start: ${fmtDate(rangeStart)} — now tap your end date`
+          : myDates.length > 0
+            ? `${fmtDate(rangeFirst)} – ${fmtDate(rangeLast)} (${myDates.length} day${myDates.length !== 1 ? "s" : ""}) · Tap any selected date to clear`
+            : "Tap a start date, then tap an end date to select your range"
+        }
+      </div>
+
       {/* Month navigation */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <button onClick={() => { if (month === 0) { setMonth(11); setYear(year-1); } else setMonth(month-1); }} style={{
@@ -254,23 +314,44 @@ function DateStage({ trip, user, onUpdate }) {
         {Array.from({ length: firstDay }).map((_, i) => <div key={"e"+i} />)}
         {Array.from({ length: days }).map((_, i) => {
           const day = i + 1;
-          const ds = `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+          const ds = makeDateStr(year, month, day);
           const isMine = myDates.includes(ds);
           const overlap = getOverlap(day);
           const isPast = new Date(year, month, day) < new Date(now.getFullYear(), now.getMonth(), now.getDate());
           const isBest = bestWindow.includes(ds);
           const isAllFree = overlap === memberCount && memberCount > 1;
-          const bg = isPast ? "#F5F4F2" : isAllFree ? `linear-gradient(135deg, ${C.greenMid}, ${C.green})` : isMine ? C.greenAccent : overlap > 0 ? `rgba(82,183,136,${0.12 + overlap/memberCount*0.25})` : "#fff";
-          const clr = isPast ? "#ccc" : isAllFree ? "#fff" : isMine ? "#fff" : C.dark;
+          const isRangeStart = ds === rangeFirst && myDates.length > 1;
+          const isRangeEnd = ds === rangeLast && myDates.length > 1;
+          const isRangeMid = isMine && !isRangeStart && !isRangeEnd && myDates.length > 1;
+          const isWaitingEnd = ds === rangeStart && !rangeLast;
+
+          // Uniform color for the entire selected range
+          const bg = isPast ? "#F5F4F2"
+            : isAllFree ? C.greenMid
+            : isMine ? C.greenAccent
+            : overlap > 0 ? `rgba(82,183,136,${0.12 + overlap/memberCount*0.25})`
+            : "#fff";
+          const clr = isPast ? "#ccc" : isMine || isAllFree ? "#fff" : C.dark;
+
+          // Connected range styling: reduce border-radius on inner edges
+          const radius = isMine && myDates.length > 1
+            ? isRangeStart ? "12px 4px 4px 12px"
+              : isRangeEnd ? "4px 12px 12px 4px"
+              : "4px"
+            : "12px";
+
           return (
-            <button key={day} onClick={() => !isPast && toggleDate(day)} disabled={isPast} style={{
-              width: "100%", aspectRatio: "1", borderRadius: 12,
-              border: isBest ? `2px solid ${C.amber}` : isPast ? "1px solid transparent" : "1px solid #EDE9E3",
+            <button key={day} onClick={() => !isPast && handleDateClick(day)} disabled={isPast} style={{
+              width: "100%", aspectRatio: "1",
+              borderRadius: radius,
+              border: isBest ? `2px solid ${C.amber}` : isPast ? "1px solid transparent" : isMine ? `1px solid ${C.greenAccent}` : "1px solid #EDE9E3",
               background: bg, color: clr, fontSize: 13, fontWeight: isMine || isAllFree ? 700 : 500,
               cursor: isPast ? "default" : "pointer", position: "relative",
               display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: isMine && !isPast ? "0 2px 8px rgba(82,183,136,0.2)" : "none",
+              boxShadow: isRangeStart || isRangeEnd ? "0 2px 8px rgba(82,183,136,0.25)" : "none",
               transition: "all 0.15s ease",
+              outline: isWaitingEnd ? `2px solid ${C.amber}` : "none",
+              outlineOffset: isWaitingEnd ? "-2px" : 0,
             }}>
               {day}
               {overlap > 0 && !isPast && (
@@ -280,7 +361,7 @@ function DateStage({ trip, user, onUpdate }) {
                   fontWeight: 800,
                 }}>{overlap}</span>
               )}
-              {isBest && !isPast && (
+              {isBest && !isPast && !isMine && (
                 <span style={{
                   position: "absolute", top: -1, left: -1,
                   width: 6, height: 6, borderRadius: "50%",
@@ -309,10 +390,10 @@ function DateStage({ trip, user, onUpdate }) {
       {/* Legend */}
       <div style={{ marginTop: 14, display: "flex", gap: 16, flexWrap: "wrap" }}>
         <span style={{ fontSize: 11, display: "flex", alignItems: "center", gap: 5, color: C.muted }}>
-          <span style={{ width: 10, height: 10, borderRadius: 4, background: C.greenAccent }}/>Your pick
+          <span style={{ width: 10, height: 10, borderRadius: 4, background: C.greenAccent }}/>Your range
         </span>
         <span style={{ fontSize: 11, display: "flex", alignItems: "center", gap: 5, color: C.muted }}>
-          <span style={{ width: 10, height: 10, borderRadius: 4, background: `linear-gradient(135deg, ${C.greenMid}, ${C.green})` }}/>Everyone
+          <span style={{ width: 10, height: 10, borderRadius: 4, background: C.greenMid }}/>Everyone
         </span>
         <span style={{ fontSize: 11, display: "flex", alignItems: "center", gap: 5, color: C.muted }}>
           <span style={{ width: 10, height: 10, borderRadius: 4, border: `2px solid ${C.amber}` }}/>Best match
