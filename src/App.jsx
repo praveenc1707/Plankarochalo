@@ -897,6 +897,9 @@ export default function App() {
     await saveTrip(t);
     setUser(u); setTrip(t); setScreen("dashboard"); setLoading(false);
     window.history.replaceState({}, "", `?trip=${tid}`);
+    const tripUrl = `${window.location.origin}?trip=${tid}`;
+    const waText = `Hey! I'm planning a trip — *${tripName.trim()}*\n\nJoin and help decide dates, destination & budget:\n${tripUrl}\n\nTrip code: *${tid}*\n\nPlan Karo Chalo!`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(waText)}`, "_blank");
   }
 
   async function joinTrip() {
