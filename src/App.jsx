@@ -1,25 +1,31 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { loadTrip, saveTrip, subscribeTripUpdates, isConfigured } from "./supabase.js";
 
-const C = { green: "#2D6A4F", greenLight: "#52B788", greenPale: "#D8F3DC", amber: "#E76F51", amberLight: "#F4A261", amberPale: "#FFECD2", dark: "#1A1A2E", bg: "#FAFAF7", card: "#FFFFFF", muted: "#8D99AE", border: "#E8E4DC" };
+const C = {
+  green: "#1B4332", greenMid: "#2D6A4F", greenLight: "#40916C", greenAccent: "#52B788", greenPale: "#D8F3DC",
+  amber: "#E76F51", amberLight: "#F4A261", amberPale: "#FFECD2",
+  dark: "#0F1923", darkSec: "#1A2B3A", bg: "#F7F6F3", bgWarm: "#FAF9F6",
+  card: "#FFFFFF", muted: "#7C8594", mutedLight: "#A0AAB8",
+  border: "#E8E4DC", borderLight: "#F0EDE8",
+};
 
 const STAGE_META = [
-  { key: "dates", label: "Dates", icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" },
-  { key: "destination", label: "Destination", icon: "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z" },
-  { key: "budget", label: "Budget", icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
-  { key: "plan", label: "Plan", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" },
-  { key: "confirm", label: "Confirm", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" },
+  { key: "dates", label: "Dates", icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z", emoji: "📅" },
+  { key: "destination", label: "Destination", icon: "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z", emoji: "📍" },
+  { key: "budget", label: "Budget", icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z", emoji: "💰" },
+  { key: "plan", label: "Plan", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4", emoji: "📋" },
+  { key: "confirm", label: "Confirm", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z", emoji: "✅" },
 ];
 
 const DESTS = [
-  { name: "Goa", vibe: "Beach & nightlife", cost: "8,000-15,000", weather: "Hot & sunny", color: "#F4A261" },
-  { name: "Manali", vibe: "Mountains & snow", cost: "6,000-12,000", weather: "Cool & crisp", color: "#52B788" },
-  { name: "Pondicherry", vibe: "French quarter vibes", cost: "5,000-10,000", weather: "Warm & humid", color: "#E76F51" },
-  { name: "Jaipur", vibe: "Heritage & culture", cost: "5,000-10,000", weather: "Hot & dry", color: "#D4A373" },
-  { name: "Coorg", vibe: "Coffee plantations", cost: "4,000-9,000", weather: "Pleasant mist", color: "#588157" },
-  { name: "Udaipur", vibe: "Lakes & palaces", cost: "6,000-12,000", weather: "Warm", color: "#BC6C25" },
-  { name: "Kodaikanal", vibe: "Hill station escape", cost: "4,000-8,000", weather: "Cool & foggy", color: "#386641" },
-  { name: "Rishikesh", vibe: "Adventure & spiritual", cost: "3,000-8,000", weather: "Pleasant", color: "#6A994E" },
+  { name: "Goa", vibe: "Beach & nightlife", cost: "8,000-15,000", weather: "Hot & sunny", color: "#F4A261", gradient: "linear-gradient(135deg, #F4A261, #E76F51)" },
+  { name: "Manali", vibe: "Mountains & snow", cost: "6,000-12,000", weather: "Cool & crisp", color: "#52B788", gradient: "linear-gradient(135deg, #52B788, #2D6A4F)" },
+  { name: "Pondicherry", vibe: "French quarter vibes", cost: "5,000-10,000", weather: "Warm & humid", color: "#E76F51", gradient: "linear-gradient(135deg, #E76F51, #BC4749)" },
+  { name: "Jaipur", vibe: "Heritage & culture", cost: "5,000-10,000", weather: "Hot & dry", color: "#D4A373", gradient: "linear-gradient(135deg, #D4A373, #BC6C25)" },
+  { name: "Coorg", vibe: "Coffee plantations", cost: "4,000-9,000", weather: "Pleasant mist", color: "#588157", gradient: "linear-gradient(135deg, #588157, #344E41)" },
+  { name: "Udaipur", vibe: "Lakes & palaces", cost: "6,000-12,000", weather: "Warm", color: "#BC6C25", gradient: "linear-gradient(135deg, #BC6C25, #9A5518)" },
+  { name: "Kodaikanal", vibe: "Hill station escape", cost: "4,000-8,000", weather: "Cool & foggy", color: "#386641", gradient: "linear-gradient(135deg, #386641, #1B4332)" },
+  { name: "Rishikesh", vibe: "Adventure & spiritual", cost: "3,000-8,000", weather: "Pleasant", color: "#6A994E", gradient: "linear-gradient(135deg, #6A994E, #386641)" },
 ];
 
 const ITIN = {
@@ -38,40 +44,50 @@ function getTripIdFromURL() {
   return params.get("trip") || null;
 }
 
-function Icon({ d, size = 20, color = "currentColor" }) {
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d={d}/></svg>;
+function Icon({ d, size = 20, color = "currentColor", strokeWidth = 1.8 }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><path d={d}/></svg>;
 }
 
-function ScenicAvatar({ stage, size = 100 }) {
-  const s = Math.min(stage, 5);
-  const w = Math.round(size * 2.6);
-  const h = size;
-  const scenes = {
-    0: <svg width={w} height={h} viewBox="0 0 260 100"><rect width="260" height="100" fill="#D5D0C8"/><rect y="58" width="260" height="42" fill="#B8B2A6"/><ellipse cx="60" cy="58" rx="50" ry="18" fill="#C4BEB2"/><ellipse cx="190" cy="62" rx="40" ry="14" fill="#C4BEB2"/><path d="M100 100 Q115 66 130 64 Q145 66 160 100" fill="#968E7E" opacity="0.5"/><circle cx="130" cy="44" r="16" fill="#C4BEB2" opacity="0.5"/><circle cx="100" cy="38" r="10" fill="#D5D0C8" opacity="0.6"/><circle cx="160" cy="40" r="12" fill="#D5D0C8" opacity="0.5"/><text x="130" y="92" textAnchor="middle" fontSize="9" fill="#8B8578" fontWeight="600" fontFamily="system-ui">Where to?</text></svg>,
-    1: <svg width={w} height={h} viewBox="0 0 260 100"><rect width="260" height="56" fill="#FDE8C9"/><rect y="56" width="260" height="44" fill="#8FAE7B"/><circle cx="130" cy="28" r="18" fill="#F4A261" opacity="0.9"/><circle cx="130" cy="28" r="13" fill="#FCDE5A" opacity="0.7"/><path d="M0 56 Q30 42 65 48 Q100 38 130 44 Q160 36 195 46 Q230 40 260 52 L260 56Z" fill="#6A994E"/><path d="M0 60 Q40 52 80 56 Q120 50 160 54 Q200 48 260 58 L260 66 L0 66Z" fill="#588157"/><path d="M100 100 L115 56 L145 56 L160 100Z" fill="#A68B6E" opacity="0.5"/>{[20,55,200,235].map((x,i)=><circle key={i} cx={x} cy={28+i*3} r={1.5+i*0.4} fill="#FCDE5A" opacity={0.3+i*0.1}/>)}<text x="130" y="92" textAnchor="middle" fontSize="9" fill="#4A6741" fontWeight="600" fontFamily="system-ui">Dates locked</text></svg>,
-    2: <svg width={w} height={h} viewBox="0 0 260 100"><rect width="260" height="100" fill="#87CEEB"/><rect y="62" width="260" height="38" fill="#F5E6CA"/><path d="M0 44 Q20 22 50 34 Q70 14 100 28 Q115 18 130 12 Q145 18 160 28 Q190 14 210 34 Q240 22 260 40 L260 62 L0 62Z" fill="#6B8F71"/><path d="M90 34 Q110 6 130 2 Q150 6 170 34" fill="#52796F" opacity="0.7"/><path d="M105 34 Q120 12 130 8 Q140 12 155 34" fill="#3E6B5A" opacity="0.5"/><circle cx="135" cy="6" r="2.5" fill="#fff" opacity="0.9"/>{[45,85,175,215].map((x,i)=><ellipse key={i} cx={x} cy={64} rx="3" ry="1.5" fill="#52B788" opacity="0.5"/>)}<text x="130" y="92" textAnchor="middle" fontSize="9" fill="#3E6B5A" fontWeight="600" fontFamily="system-ui">Destination chosen</text></svg>,
-    3: <svg width={w} height={h} viewBox="0 0 260 100"><rect width="260" height="100" fill="#2C3E6B"/><rect y="56" width="260" height="44" fill="#3A5A40"/>{[30,70,120,170,210,250].map((x,i)=><circle key={i} cx={x} cy={8+i*3} r={1+i*0.2} fill="#fff" opacity={0.4+i*0.08}/>)}<circle cx="210" cy="16" r="8" fill="#F5E6CA" opacity="0.8"/><path d="M0 56 Q50 48 100 52 Q150 46 200 52 Q240 48 260 54 L260 60 L0 60Z" fill="#344E41"/><polygon points="125,56 130,40 135,56" fill="#E76F51" opacity="0.9"/><polygon points="120,58 130,42 140,58" fill="#F4A261" opacity="0.7"/><rect x="128" y="58" width="4" height="10" fill="#8B5E3C"/><circle cx="130" cy="66" r="5" fill="#E76F51" opacity="0.5"/><circle cx="130" cy="66" r="2.5" fill="#FCDE5A" opacity="0.7"/><text x="130" y="92" textAnchor="middle" fontSize="9" fill="#A8D5A2" fontWeight="600" fontFamily="system-ui">Budget settled</text></svg>,
-    4: <svg width={w} height={h} viewBox="0 0 260 100"><rect width="260" height="100" fill="#87CEEB"/><circle cx="40" cy="18" r="12" fill="#FCDE5A" opacity="0.9"/><rect y="52" width="260" height="48" fill="#588157"/><path d="M0 52 Q30 38 70 46 Q110 34 150 40 Q190 30 230 42 Q250 38 260 46 L260 56 L0 56Z" fill="#6A994E"/><path d="M40 52 L50 30 L55 52" fill="#344E41"/><path d="M42 46 L50 34 L58 46" fill="#52B788"/><path d="M200 52 L212 26 L218 52" fill="#344E41"/><path d="M203 44 L212 30 L221 44" fill="#52B788"/><rect x="125" y="46" width="10" height="14" rx="1" fill="#E76F51"/><polygon points="130,36 122,48 138,48" fill="#F4A261"/>{[90,110,130,150,170].map((x,i)=><line key={i} x1={x} y1={100-i*4} x2={x} y2={96-i*4} stroke="#fff" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>)}<text x="130" y="92" textAnchor="middle" fontSize="9" fill="#2D6A4F" fontWeight="600" fontFamily="system-ui">Plan ready</text></svg>,
-    5: <svg width={w} height={h} viewBox="0 0 260 100"><rect width="260" height="40" fill="#FF8C42"/><rect y="40" width="260" height="16" fill="#FFB067"/><rect y="56" width="260" height="44" fill="#2D6A4F"/><circle cx="130" cy="24" r="16" fill="#FCDE5A" opacity="0.8"/><circle cx="130" cy="24" r="11" fill="#FFE066" opacity="0.6"/>{[0,1,2,3,4,5,6,7].map(i=><line key={i} x1={130+Math.cos(i*0.785)*20} y1={24+Math.sin(i*0.785)*20} x2={130+Math.cos(i*0.785)*25} y2={24+Math.sin(i*0.785)*25} stroke="#FCDE5A" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>)}<path d="M0 44 Q40 32 80 38 Q120 28 160 34 Q200 26 240 36 L260 40 L260 56 L0 56Z" fill="#40916C"/>{[105,118,130,142,155].map((x,i)=>{const y=50+Math.sin(i*1.2)*2;return <g key={i}><circle cx={x} cy={y} r="3" fill="#FFE066"/><rect x={x-1} y={y} width="2" height="5" fill="#8B5E3C"/></g>})}{[80,100,160,180].map((x,i)=><polygon key={i} points={`${x},56 ${x-3},48 ${x+3},48`} fill={i%2?"#F4A261":"#E76F51"} opacity="0.7"/>)}<text x="130" y="90" textAnchor="middle" fontSize="10" fill="#D8F3DC" fontWeight="700" fontFamily="system-ui">Let's go!</text></svg>,
-  };
-  return <div style={{ display: "flex", justifyContent: "center" }}>{scenes[s] || scenes[0]}</div>;
-}
+/* ── STEPPER ── */
 
 function Stepper({ currentStage, lockedStages }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 0, padding: "16px 0" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 0, padding: "20px 0 16px" }}>
       {STAGE_META.map((s, i) => {
         const locked = lockedStages.includes(s.key);
         const active = i === currentStage;
+        const future = i > currentStage && !locked;
         return (
           <div key={s.key} style={{ display: "flex", alignItems: "center", flex: 1 }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}>
-              <div style={{ width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: locked ? C.green : active ? C.amber : "#E8E4DC", transition: "all 0.3s" }}>
-                {locked ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><path d="M5 13l4 4L19 7"/></svg> : <Icon d={s.icon} size={14} color={active ? "#fff" : C.muted} />}
+              <div style={{
+                width: 36, height: 36, borderRadius: "50%",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                background: locked ? `linear-gradient(135deg, ${C.greenMid}, ${C.green})` : active ? `linear-gradient(135deg, ${C.amber}, ${C.amberLight})` : C.borderLight,
+                boxShadow: locked ? "0 2px 8px rgba(27,67,50,0.25)" : active ? "0 2px 8px rgba(231,111,81,0.3)" : "none",
+                transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                transform: active ? "scale(1.1)" : "scale(1)",
+              }}>
+                {locked ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"><path d="M5 13l4 4L19 7"/></svg>
+                ) : (
+                  <span style={{ fontSize: 14, filter: future ? "grayscale(1) opacity(0.4)" : "none" }}>{s.emoji}</span>
+                )}
               </div>
-              <span style={{ fontSize: 10, marginTop: 4, color: locked ? C.green : active ? C.amber : C.muted, fontWeight: active ? 600 : 400 }}>{s.label}</span>
+              <span style={{
+                fontSize: 10, marginTop: 5, fontWeight: active ? 700 : 500,
+                color: locked ? C.greenMid : active ? C.amber : C.mutedLight,
+                transition: "all 0.3s",
+                letterSpacing: active ? "0.3px" : "0",
+              }}>{s.label}</span>
             </div>
-            {i < 4 && <div style={{ height: 2, flex: "0 0 16px", background: locked ? C.green : "#E8E4DC", borderRadius: 1, transition: "all 0.3s" }}/>}
+            {i < 4 && (
+              <div style={{
+                height: 2, flex: "0 0 16px", borderRadius: 1,
+                background: locked ? `linear-gradient(90deg, ${C.greenAccent}, ${C.greenMid})` : C.borderLight,
+                transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+              }}/>
+            )}
           </div>
         );
       })}
@@ -79,13 +95,98 @@ function Stepper({ currentStage, lockedStages }) {
   );
 }
 
-function MemberAvatars({ members, size = 28 }) {
-  const pal = ["#2D6A4F","#E76F51","#264653","#E9C46A","#F4A261","#606C38","#BC6C25"];
+/* ── MEMBER AVATARS ── */
+
+function MemberAvatars({ members, size = 32 }) {
+  const gradients = [
+    "linear-gradient(135deg, #2D6A4F, #52B788)",
+    "linear-gradient(135deg, #E76F51, #F4A261)",
+    "linear-gradient(135deg, #264653, #2A9D8F)",
+    "linear-gradient(135deg, #E9C46A, #F4A261)",
+    "linear-gradient(135deg, #606C38, #DDA15E)",
+    "linear-gradient(135deg, #BC6C25, #DDA15E)",
+    "linear-gradient(135deg, #6D597A, #B56576)",
+  ];
   return (
-    <div style={{ display: "flex" }}>
-      {members.map((m, i) => (
-        <div key={m.id} title={m.name} style={{ width: size, height: size, borderRadius: "50%", background: pal[i % pal.length], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, color: "#fff", border: "2px solid #fff", marginLeft: i > 0 ? -6 : 0, zIndex: members.length - i }}>{m.name.charAt(0).toUpperCase()}</div>
+    <div style={{ display: "flex", alignItems: "center" }}>
+      {members.slice(0, 5).map((m, i) => (
+        <div key={m.id} title={m.name} style={{
+          width: size, height: size, borderRadius: "50%",
+          background: gradients[i % gradients.length],
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: size * 0.38, fontWeight: 700, color: "#fff",
+          border: "2.5px solid #fff", marginLeft: i > 0 ? -8 : 0,
+          zIndex: members.length - i,
+          boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
+          transition: "transform 0.2s",
+        }}>{m.name.charAt(0).toUpperCase()}</div>
       ))}
+      {members.length > 5 && (
+        <div style={{
+          width: size, height: size, borderRadius: "50%",
+          background: C.border, display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 10, fontWeight: 700, color: C.muted,
+          border: "2.5px solid #fff", marginLeft: -8,
+          boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+        }}>+{members.length - 5}</div>
+      )}
+    </div>
+  );
+}
+
+/* ── PROGRESS ILLUSTRATION ── */
+
+function ProgressBanner({ stage, destination }) {
+  const messages = [
+    { text: "Let's start planning!", sub: "Pick your dates first" },
+    { text: "Dates are set!", sub: "Now choose where to go" },
+    { text: "Destination locked!", sub: "Let's talk budget" },
+    { text: "Budget agreed!", sub: "Review the plan" },
+    { text: "Almost there!", sub: "Confirm your attendance" },
+    { text: "Trip confirmed!", sub: destination || "Let's go!" },
+  ];
+  const s = Math.min(stage, 5);
+  const msg = messages[s];
+  const progress = (s / 5) * 100;
+
+  return (
+    <div className="fade-in-scale" style={{
+      margin: "0 0 16px",
+      padding: "20px 24px",
+      borderRadius: "var(--radius-lg)",
+      background: s >= 5
+        ? "linear-gradient(135deg, #1B4332 0%, #2D6A4F 50%, #40916C 100%)"
+        : "linear-gradient(135deg, #1A2B3A 0%, #0F1923 100%)",
+      color: "#fff",
+      position: "relative",
+      overflow: "hidden",
+    }}>
+      {/* Decorative circles */}
+      <div style={{ position: "absolute", top: -20, right: -20, width: 80, height: 80, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }}/>
+      <div style={{ position: "absolute", bottom: -30, right: 40, width: 60, height: 60, borderRadius: "50%", background: "rgba(255,255,255,0.03)" }}/>
+
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 4, letterSpacing: "-0.3px" }}>{msg.text}</div>
+        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginBottom: 16, fontWeight: 500 }}>{msg.sub}</div>
+
+        {/* Progress bar */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{
+            flex: 1, height: 6, background: "rgba(255,255,255,0.12)",
+            borderRadius: 3, overflow: "hidden",
+          }}>
+            <div style={{
+              width: `${progress}%`, height: "100%",
+              background: s >= 5
+                ? "linear-gradient(90deg, #52B788, #D8F3DC)"
+                : "linear-gradient(90deg, #F4A261, #E76F51)",
+              borderRadius: 3,
+              transition: "width 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
+            }}/>
+          </div>
+          <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.7)", minWidth: 36 }}>{Math.round(progress)}%</span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -126,13 +227,30 @@ function DateStage({ trip, user, onUpdate }) {
 
   return (
     <div className="fade-in">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <button onClick={() => { if (month === 0) { setMonth(11); setYear(year-1); } else setMonth(month-1); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 20, padding: 8, color: C.dark }}>&#8249;</button>
-        <span style={{ fontWeight: 600, fontSize: 15 }}>{new Date(year, month).toLocaleDateString("en-IN", { month: "long", year: "numeric" })}</span>
-        <button onClick={() => { if (month === 11) { setMonth(0); setYear(year+1); } else setMonth(month+1); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 20, padding: 8, color: C.dark }}>&#8250;</button>
+      {/* Month navigation */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <button onClick={() => { if (month === 0) { setMonth(11); setYear(year-1); } else setMonth(month-1); }} style={{
+          background: "none", border: `1.5px solid ${C.border}`, cursor: "pointer", fontSize: 16, padding: "8px 12px",
+          color: C.dark, borderRadius: 10, display: "flex", alignItems: "center",
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: "-0.2px" }}>
+          {new Date(year, month).toLocaleDateString("en-IN", { month: "long", year: "numeric" })}
+        </span>
+        <button onClick={() => { if (month === 11) { setMonth(0); setYear(year+1); } else setMonth(month+1); }} style={{
+          background: "none", border: `1.5px solid ${C.border}`, cursor: "pointer", fontSize: 16, padding: "8px 12px",
+          color: C.dark, borderRadius: 10, display: "flex", alignItems: "center",
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, textAlign: "center" }}>
-        {["Su","Mo","Tu","We","Th","Fr","Sa"].map(d => <div key={d} style={{ fontSize: 11, color: C.muted, fontWeight: 600, padding: "4px 0" }}>{d}</div>)}
+
+      {/* Calendar grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6, textAlign: "center" }}>
+        {["Su","Mo","Tu","We","Th","Fr","Sa"].map(d => (
+          <div key={d} style={{ fontSize: 11, color: C.mutedLight, fontWeight: 600, padding: "6px 0", letterSpacing: "0.5px" }}>{d}</div>
+        ))}
         {Array.from({ length: firstDay }).map((_, i) => <div key={"e"+i} />)}
         {Array.from({ length: days }).map((_, i) => {
           const day = i + 1;
@@ -141,21 +259,64 @@ function DateStage({ trip, user, onUpdate }) {
           const overlap = getOverlap(day);
           const isPast = new Date(year, month, day) < new Date(now.getFullYear(), now.getMonth(), now.getDate());
           const isBest = bestWindow.includes(ds);
-          const bg = isPast ? "#f5f5f5" : isMine && overlap === memberCount ? C.green : isMine ? C.greenLight : overlap > 0 ? `rgba(45,106,79,${0.1 + overlap/memberCount*0.3})` : "#fff";
-          const clr = isPast ? "#ccc" : (isMine && overlap >= memberCount * 0.5) ? "#fff" : C.dark;
+          const isAllFree = overlap === memberCount && memberCount > 1;
+          const bg = isPast ? "#F5F4F2" : isAllFree ? `linear-gradient(135deg, ${C.greenMid}, ${C.green})` : isMine ? C.greenAccent : overlap > 0 ? `rgba(82,183,136,${0.12 + overlap/memberCount*0.25})` : "#fff";
+          const clr = isPast ? "#ccc" : isAllFree ? "#fff" : isMine ? "#fff" : C.dark;
           return (
-            <button key={day} onClick={() => !isPast && toggleDate(day)} disabled={isPast} style={{ width: "100%", aspectRatio: "1", borderRadius: 8, border: isBest ? `2px solid ${C.amber}` : "1px solid #eee", background: bg, color: clr, fontSize: 13, fontWeight: isMine ? 700 : 400, cursor: isPast ? "default" : "pointer", position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <button key={day} onClick={() => !isPast && toggleDate(day)} disabled={isPast} style={{
+              width: "100%", aspectRatio: "1", borderRadius: 12,
+              border: isBest ? `2px solid ${C.amber}` : isPast ? "1px solid transparent" : "1px solid #EDE9E3",
+              background: bg, color: clr, fontSize: 13, fontWeight: isMine || isAllFree ? 700 : 500,
+              cursor: isPast ? "default" : "pointer", position: "relative",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: isMine && !isPast ? "0 2px 8px rgba(82,183,136,0.2)" : "none",
+              transition: "all 0.15s ease",
+            }}>
               {day}
-              {overlap > 0 && !isPast && <span style={{ position: "absolute", bottom: 1, right: 3, fontSize: 7, color: overlap === memberCount ? "#fff" : C.green, fontWeight: 700 }}>{overlap}</span>}
+              {overlap > 0 && !isPast && (
+                <span style={{
+                  position: "absolute", bottom: 2, right: 4,
+                  fontSize: 7, color: isAllFree || isMine ? "rgba(255,255,255,0.8)" : C.greenAccent,
+                  fontWeight: 800,
+                }}>{overlap}</span>
+              )}
+              {isBest && !isPast && (
+                <span style={{
+                  position: "absolute", top: -1, left: -1,
+                  width: 6, height: 6, borderRadius: "50%",
+                  background: C.amber,
+                }}/>
+              )}
             </button>
           );
         })}
       </div>
-      {bestWindow.length > 0 && <div style={{ marginTop: 16, padding: 12, background: C.greenPale, borderRadius: 10 }}><div style={{ fontSize: 12, fontWeight: 600, color: C.green, marginBottom: 4 }}>Best overlap</div><div style={{ fontSize: 13, color: C.dark }}>{bestWindow.map(d => fmtDate(d)).join(", ")}</div></div>}
-      <div style={{ marginTop: 12, display: "flex", gap: 12, flexWrap: "wrap" }}>
-        <span style={{ fontSize: 11, display: "flex", alignItems: "center", gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: 3, background: C.greenLight }}/> Your pick</span>
-        <span style={{ fontSize: 11, display: "flex", alignItems: "center", gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: 3, background: C.green }}/> Everyone free</span>
-        <span style={{ fontSize: 11, display: "flex", alignItems: "center", gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: 3, border: `2px solid ${C.amber}` }}/> Best match</span>
+
+      {/* Best window */}
+      {bestWindow.length > 0 && (
+        <div style={{
+          marginTop: 20, padding: "14px 16px",
+          background: "linear-gradient(135deg, rgba(216,243,220,0.6), rgba(82,183,136,0.12))",
+          borderRadius: "var(--radius-md)", border: `1px solid ${C.greenPale}`,
+        }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: C.greenMid, marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
+            <span>Best overlap</span>
+          </div>
+          <div style={{ fontSize: 14, color: C.dark, fontWeight: 600 }}>{bestWindow.map(d => fmtDate(d)).join("  ·  ")}</div>
+        </div>
+      )}
+
+      {/* Legend */}
+      <div style={{ marginTop: 14, display: "flex", gap: 16, flexWrap: "wrap" }}>
+        <span style={{ fontSize: 11, display: "flex", alignItems: "center", gap: 5, color: C.muted }}>
+          <span style={{ width: 10, height: 10, borderRadius: 4, background: C.greenAccent }}/>Your pick
+        </span>
+        <span style={{ fontSize: 11, display: "flex", alignItems: "center", gap: 5, color: C.muted }}>
+          <span style={{ width: 10, height: 10, borderRadius: 4, background: `linear-gradient(135deg, ${C.greenMid}, ${C.green})` }}/>Everyone
+        </span>
+        <span style={{ fontSize: 11, display: "flex", alignItems: "center", gap: 5, color: C.muted }}>
+          <span style={{ width: 10, height: 10, borderRadius: 4, border: `2px solid ${C.amber}` }}/>Best match
+        </span>
       </div>
     </div>
   );
@@ -175,31 +336,67 @@ function DestinationStage({ trip, user, onUpdate }) {
   function addOption() {
     if (!newDest.trim()) return;
     const db = DESTS.find(d => d.name.toLowerCase() === newDest.trim().toLowerCase());
-    const opt = db || { name: newDest.trim(), vibe: "Custom destination", cost: "Varies", weather: "-", color: "#8D99AE" };
+    const opt = db || { name: newDest.trim(), vibe: "Custom destination", cost: "Varies", weather: "-", color: "#8D99AE", gradient: "linear-gradient(135deg, #8D99AE, #6C757D)" };
     onUpdate({ ...trip, stages: { ...trip.stages, destination: { ...trip.stages.destination, options: [...options, opt] } } });
     setNewDest(""); setShowAdd(false);
   }
   const vc = {}; Object.values(votes).forEach(v => { vc[v] = (vc[v] || 0) + 1; });
   const total = Object.keys(votes).length;
+  const maxVotes = Math.max(...Object.values(vc), 0);
 
   return (
     <div className="fade-in">
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div className="stagger" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         {options.map(opt => {
           const cnt = vc[opt.name] || 0;
           const pct = total ? Math.round(cnt / total * 100) : 0;
           const mine = myVote === opt.name;
+          const isLeading = cnt === maxVotes && cnt > 0;
           return (
-            <button key={opt.name} onClick={() => vote(opt.name)} style={{ display: "flex", flexDirection: "column", background: C.card, border: mine ? `2px solid ${C.green}` : `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden", cursor: "pointer", textAlign: "left" }}>
-              <div style={{ height: 48, background: opt.color || "#ccc", display: "flex", alignItems: "center", padding: "0 16px" }}>
-                <span style={{ fontSize: 18, fontWeight: 700, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.3)" }}>{opt.name}</span>
-                {mine && <span style={{ marginLeft: "auto", background: "#fff", borderRadius: 12, padding: "2px 10px", fontSize: 11, fontWeight: 600, color: C.green }}>Your pick</span>}
+            <button key={opt.name} onClick={() => vote(opt.name)} style={{
+              display: "flex", flexDirection: "column",
+              background: C.card,
+              border: mine ? `2px solid ${C.greenAccent}` : `1.5px solid ${C.borderLight}`,
+              borderRadius: "var(--radius-lg)", overflow: "hidden", cursor: "pointer", textAlign: "left",
+              boxShadow: mine ? `0 4px 16px rgba(82,183,136,0.15)` : "var(--shadow-sm)",
+              transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+            }}>
+              <div style={{
+                height: 56, background: opt.gradient || opt.color || "#ccc",
+                display: "flex", alignItems: "center", padding: "0 20px",
+                position: "relative", overflow: "hidden",
+              }}>
+                {/* Decorative wave */}
+                <div style={{ position: "absolute", bottom: -1, left: 0, right: 0, height: 12, background: C.card, borderRadius: "14px 14px 0 0" }}/>
+                <span style={{ fontSize: 20, fontWeight: 800, color: "#fff", textShadow: "0 2px 8px rgba(0,0,0,0.2)", letterSpacing: "-0.3px", zIndex: 1 }}>{opt.name}</span>
+                {mine && (
+                  <span style={{
+                    marginLeft: "auto", background: "rgba(255,255,255,0.95)", borderRadius: 20,
+                    padding: "4px 12px", fontSize: 11, fontWeight: 700, color: C.greenMid, zIndex: 1,
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                  }}>Your pick</span>
+                )}
+                {isLeading && !mine && (
+                  <span style={{
+                    marginLeft: "auto", background: "rgba(255,255,255,0.9)", borderRadius: 20,
+                    padding: "4px 10px", fontSize: 10, fontWeight: 700, color: C.amber, zIndex: 1,
+                  }}>Leading</span>
+                )}
               </div>
-              <div style={{ padding: "10px 16px" }}>
-                <div style={{ display: "flex", gap: 12, fontSize: 11, color: C.muted, marginBottom: 8, flexWrap: "wrap" }}><span>{opt.vibe}</span><span>Rs {opt.cost}</span><span>{opt.weather}</span></div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{ flex: 1, height: 5, background: "#f0f0f0", borderRadius: 3, overflow: "hidden" }}><div style={{ width: `${pct}%`, height: "100%", background: mine ? C.green : C.greenLight, borderRadius: 3, transition: "width 0.3s" }}/></div>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: C.dark, minWidth: 36 }}>{cnt} vote{cnt !== 1 ? "s" : ""}</span>
+              <div style={{ padding: "14px 20px 16px" }}>
+                <div style={{ display: "flex", gap: 8, fontSize: 12, color: C.muted, marginBottom: 12, flexWrap: "wrap", alignItems: "center" }}>
+                  <span style={{ background: C.bgWarm, padding: "3px 10px", borderRadius: 6, fontWeight: 500 }}>{opt.vibe}</span>
+                  <span style={{ background: C.bgWarm, padding: "3px 10px", borderRadius: 6, fontWeight: 500 }}>Rs {opt.cost}</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ flex: 1, height: 6, background: C.borderLight, borderRadius: 3, overflow: "hidden" }}>
+                    <div style={{
+                      width: `${pct}%`, height: "100%",
+                      background: mine ? `linear-gradient(90deg, ${C.greenAccent}, ${C.greenMid})` : `linear-gradient(90deg, ${C.greenPale}, ${C.greenAccent})`,
+                      borderRadius: 3, transition: "width 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                    }}/>
+                  </div>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: C.dark, minWidth: 40 }}>{cnt} vote{cnt !== 1 ? "s" : ""}</span>
                 </div>
               </div>
             </button>
@@ -207,12 +404,26 @@ function DestinationStage({ trip, user, onUpdate }) {
         })}
       </div>
       {showAdd ? (
-        <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-          <input value={newDest} onChange={e => setNewDest(e.target.value)} placeholder="Destination name..." style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, outline: "none" }} onKeyDown={e => e.key === "Enter" && addOption()} />
-          <button onClick={addOption} style={{ padding: "10px 16px", borderRadius: 10, background: C.green, color: "#fff", border: "none", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Add</button>
+        <div className="fade-in" style={{ marginTop: 14, display: "flex", gap: 8 }}>
+          <input value={newDest} onChange={e => setNewDest(e.target.value)} placeholder="Destination name..." style={{
+            flex: 1, padding: "12px 16px", borderRadius: "var(--radius-md)",
+            border: `1.5px solid ${C.border}`, fontSize: 14, outline: "none", background: "#fff",
+          }} onKeyDown={e => e.key === "Enter" && addOption()} autoFocus />
+          <button onClick={addOption} style={{
+            padding: "12px 20px", borderRadius: "var(--radius-md)",
+            background: `linear-gradient(135deg, ${C.greenMid}, ${C.green})`,
+            color: "#fff", border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
+            boxShadow: "0 2px 8px rgba(27,67,50,0.25)",
+          }}>Add</button>
         </div>
       ) : (
-        <button onClick={() => setShowAdd(true)} style={{ marginTop: 12, width: "100%", padding: 12, borderRadius: 10, border: `1px dashed ${C.border}`, background: "transparent", fontSize: 13, color: C.muted, cursor: "pointer" }}>+ Suggest a destination</button>
+        <button onClick={() => setShowAdd(true)} style={{
+          marginTop: 14, width: "100%", padding: 14,
+          borderRadius: "var(--radius-md)",
+          border: `2px dashed ${C.border}`, background: "transparent",
+          fontSize: 13, color: C.muted, cursor: "pointer", fontWeight: 600,
+          transition: "all 0.2s",
+        }}>+ Suggest a destination</button>
       )}
     </div>
   );
@@ -240,23 +451,67 @@ function BudgetStage({ trip, user, onUpdate }) {
 
   return (
     <div className="fade-in">
-      <div style={{ marginBottom: 20 }}>
-        <label style={{ fontSize: 13, fontWeight: 600, color: C.dark, display: "block", marginBottom: 10 }}>Your comfortable range (per person)</label>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontSize: 12, color: C.muted, minWidth: 24 }}>Min</span>
-          <input type="range" min={1000} max={50000} step={1000} value={min} onChange={e => { const v = +e.target.value; setMin(Math.min(v, max - 1000)); }} style={{ flex: 1 }} />
-          <span style={{ fontSize: 14, fontWeight: 600, minWidth: 70, textAlign: "right" }}>&#x20B9;{min.toLocaleString("en-IN")}</span>
+      <div style={{ marginBottom: 24 }}>
+        <label style={{ fontSize: 14, fontWeight: 700, color: C.dark, display: "block", marginBottom: 16, letterSpacing: "-0.2px" }}>
+          Your comfortable range <span style={{ fontWeight: 500, color: C.muted, fontSize: 12 }}>(per person)</span>
+        </label>
+
+        {/* Min slider */}
+        <div style={{
+          padding: "16px 20px", background: C.card, borderRadius: "var(--radius-md)",
+          border: `1px solid ${C.borderLight}`, marginBottom: 10,
+          boxShadow: "var(--shadow-sm)",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+            <span style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>Minimum</span>
+            <span style={{ fontSize: 18, fontWeight: 800, color: C.greenMid, letterSpacing: "-0.5px" }}>&#x20B9;{min.toLocaleString("en-IN")}</span>
+          </div>
+          <input type="range" min={1000} max={50000} step={1000} value={min} onChange={e => { const v = +e.target.value; setMin(Math.min(v, max - 1000)); }} style={{ width: "100%" }} />
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8 }}>
-          <span style={{ fontSize: 12, color: C.muted, minWidth: 24 }}>Max</span>
-          <input type="range" min={1000} max={50000} step={1000} value={max} onChange={e => { const v = +e.target.value; setMax(Math.max(v, min + 1000)); }} style={{ flex: 1 }} />
-          <span style={{ fontSize: 14, fontWeight: 600, minWidth: 70, textAlign: "right" }}>&#x20B9;{max.toLocaleString("en-IN")}</span>
+
+        {/* Max slider */}
+        <div style={{
+          padding: "16px 20px", background: C.card, borderRadius: "var(--radius-md)",
+          border: `1px solid ${C.borderLight}`, boxShadow: "var(--shadow-sm)",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+            <span style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>Maximum</span>
+            <span style={{ fontSize: 18, fontWeight: 800, color: C.amber, letterSpacing: "-0.5px" }}>&#x20B9;{max.toLocaleString("en-IN")}</span>
+          </div>
+          <input type="range" min={1000} max={50000} step={1000} value={max} onChange={e => { const v = +e.target.value; setMax(Math.max(v, min + 1000)); }} style={{ width: "100%" }} />
         </div>
       </div>
-      <div style={{ padding: 16, background: responded > 1 ? (hasOverlap ? C.greenPale : "#FFF0F0") : "#F8F8F8", borderRadius: 12 }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: hasOverlap ? C.green : responded > 1 ? "#C62828" : C.muted, marginBottom: 4 }}>{responded <= 1 ? "Waiting for others..." : hasOverlap ? "Group overlap found" : "No overlap yet"}</div>
-        {responded > 1 && hasOverlap && <div style={{ fontSize: 18, fontWeight: 700, color: C.green }}>&#x20B9;{oMin.toLocaleString("en-IN")} – &#x20B9;{oMax.toLocaleString("en-IN")}</div>}
-        <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>{responded} of {trip.members.length} responded</div>
+
+      {/* Overlap result */}
+      <div style={{
+        padding: "20px", borderRadius: "var(--radius-lg)",
+        background: responded > 1
+          ? (hasOverlap ? "linear-gradient(135deg, rgba(216,243,220,0.5), rgba(82,183,136,0.1))" : "linear-gradient(135deg, #FFF0F0, #FFE0E0)")
+          : C.borderLight,
+        border: hasOverlap ? `1px solid ${C.greenPale}` : responded > 1 ? "1px solid #FFCDD2" : `1px solid ${C.border}`,
+        textAlign: "center",
+      }}>
+        {responded <= 1 ? (
+          <>
+            <div style={{ fontSize: 24, marginBottom: 8, animation: "pulse 2s infinite" }}>...</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: C.muted }}>Waiting for others to respond</div>
+          </>
+        ) : hasOverlap ? (
+          <>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.greenMid, marginBottom: 6, textTransform: "uppercase", letterSpacing: "1px" }}>Group overlap found</div>
+            <div style={{ fontSize: 26, fontWeight: 800, color: C.green, letterSpacing: "-0.5px" }}>
+              &#x20B9;{oMin.toLocaleString("en-IN")} – &#x20B9;{oMax.toLocaleString("en-IN")}
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#C62828", marginBottom: 4 }}>No overlap yet</div>
+            <div style={{ fontSize: 12, color: "#E57373" }}>Adjust your range to find common ground</div>
+          </>
+        )}
+        <div style={{ fontSize: 11, color: C.muted, marginTop: 10, fontWeight: 500 }}>
+          {responded} of {trip.members.length} responded
+        </div>
       </div>
     </div>
   );
@@ -273,27 +528,82 @@ function PlanStage({ trip, user, onUpdate }) {
   }
   const inCount = Object.values(confirmations).filter(v => v === "in").length;
 
+  const dayColors = ["#2D6A4F", "#E76F51", "#264653"];
+
   return (
     <div className="fade-in">
-      {plan.map(day => (
-        <div key={day.d} style={{ marginBottom: 12, background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, overflow: "hidden" }}>
-          <div style={{ padding: "10px 14px", background: "#F8F6F3", borderBottom: `1px solid ${C.border}`, fontWeight: 600, fontSize: 13 }}>Day {day.d}</div>
-          <div style={{ padding: "10px 14px" }}>
-            {day.items.map((item, j) => (
-              <div key={j} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", borderBottom: j < day.items.length - 1 ? "1px solid #f0f0f0" : "none" }}>
-                <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.greenLight, flexShrink: 0 }}/><span style={{ fontSize: 13 }}>{item}</span>
-              </div>
-            ))}
+      <div className="stagger" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {plan.map((day, dayIdx) => (
+          <div key={day.d} style={{
+            background: C.card, border: `1px solid ${C.borderLight}`,
+            borderRadius: "var(--radius-lg)", overflow: "hidden",
+            boxShadow: "var(--shadow-sm)",
+          }}>
+            <div style={{
+              padding: "12px 18px",
+              background: dayColors[dayIdx % 3],
+              display: "flex", alignItems: "center", gap: 10,
+            }}>
+              <span style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800, color: "#fff" }}>{day.d}</span>
+              <span style={{ fontWeight: 700, fontSize: 14, color: "#fff" }}>Day {day.d}</span>
+            </div>
+            <div style={{ padding: "12px 18px" }}>
+              {day.items.map((item, j) => (
+                <div key={j} style={{
+                  display: "flex", alignItems: "center", gap: 12,
+                  padding: "10px 0",
+                  borderBottom: j < day.items.length - 1 ? `1px solid ${C.borderLight}` : "none",
+                }}>
+                  <div style={{
+                    width: 8, height: 8, borderRadius: "50%",
+                    background: `linear-gradient(135deg, ${C.greenAccent}, ${C.greenMid})`,
+                    flexShrink: 0,
+                    boxShadow: `0 0 0 3px rgba(82,183,136,0.15)`,
+                  }}/>
+                  <span style={{ fontSize: 14, fontWeight: 500, color: C.dark }}>{item}</span>
+                </div>
+              ))}
+            </div>
           </div>
+        ))}
+      </div>
+
+      {/* Confirm section */}
+      <div style={{
+        padding: 20, background: C.bgWarm,
+        borderRadius: "var(--radius-lg)", marginTop: 16,
+        border: `1px solid ${C.borderLight}`,
+      }}>
+        <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 14, color: C.dark, letterSpacing: "-0.3px" }}>Are you in?</div>
+        <div style={{ display: "flex", gap: 12 }}>
+          <button onClick={() => confirm("in")} style={{
+            flex: 1, padding: 14, borderRadius: "var(--radius-md)",
+            border: myStatus === "in" ? `2px solid ${C.greenAccent}` : `1.5px solid ${C.border}`,
+            background: myStatus === "in" ? `linear-gradient(135deg, ${C.greenPale}, rgba(82,183,136,0.15))` : "#fff",
+            fontSize: 15, fontWeight: 700, cursor: "pointer", color: C.greenMid,
+            boxShadow: myStatus === "in" ? "0 4px 12px rgba(82,183,136,0.2)" : "none",
+            transition: "all 0.2s",
+          }}>
+            {myStatus === "in" ? "I'm in!" : "I'm in!"}
+          </button>
+          <button onClick={() => confirm("out")} style={{
+            flex: 1, padding: 14, borderRadius: "var(--radius-md)",
+            border: myStatus === "out" ? "2px solid #EF5350" : `1.5px solid ${C.border}`,
+            background: myStatus === "out" ? "linear-gradient(135deg, #FFEBEE, rgba(239,83,80,0.1))" : "#fff",
+            fontSize: 15, fontWeight: 700, cursor: "pointer", color: "#EF5350",
+            boxShadow: myStatus === "out" ? "0 4px 12px rgba(239,83,80,0.15)" : "none",
+            transition: "all 0.2s",
+          }}>
+            Can't make it
+          </button>
         </div>
-      ))}
-      <div style={{ padding: 16, background: "#F8F6F3", borderRadius: 12, marginTop: 8 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: C.dark }}>Are you in?</div>
-        <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={() => confirm("in")} style={{ flex: 1, padding: 12, borderRadius: 10, border: myStatus === "in" ? `2px solid ${C.green}` : `1px solid ${C.border}`, background: myStatus === "in" ? C.greenPale : "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer", color: C.green }}>I'm in!</button>
-          <button onClick={() => confirm("out")} style={{ flex: 1, padding: 12, borderRadius: 10, border: myStatus === "out" ? "2px solid #E24B4A" : `1px solid ${C.border}`, background: myStatus === "out" ? "#FFEBEB" : "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer", color: "#E24B4A" }}>Can't make it</button>
+        <div style={{
+          marginTop: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+          fontSize: 13, color: C.muted, fontWeight: 500,
+        }}>
+          <span style={{ fontSize: 18, fontWeight: 800, color: C.greenMid }}>{inCount}</span>
+          <span>of {trip.members.length} confirmed</span>
         </div>
-        <div style={{ marginTop: 10, fontSize: 12, color: C.muted }}>{inCount} of {trip.members.length} confirmed</div>
       </div>
     </div>
   );
@@ -325,7 +635,7 @@ function TripDashboard({ trip, user, onUpdate, onBack }) {
       lockedValue = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || "TBD";
     } else if (key === "budget") {
       const vals = Object.values(trip.stages.budget.ranges || {});
-      if (vals.length) { const oMin = Math.max(...vals.map(r => r.min)); const oMax = Math.min(...vals.map(r => r.max)); lockedValue = `\u20B9${oMin.toLocaleString("en-IN")} – \u20B9${oMax.toLocaleString("en-IN")}`; }
+      if (vals.length) { const oMin = Math.max(...vals.map(r => r.min)); const oMax = Math.min(...vals.map(r => r.max)); lockedValue = `\u20B9${oMin.toLocaleString("en-IN")} \u2013 \u20B9${oMax.toLocaleString("en-IN")}`; }
     } else if (key === "plan" || key === "confirm") {
       lockedValue = `${inCount} of ${trip.members.length} confirmed`;
     }
@@ -349,18 +659,47 @@ function TripDashboard({ trip, user, onUpdate, onBack }) {
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg }}>
-      <div style={{ background: C.dark, padding: "16px 20px", color: "#fff" }}>
+      {/* Header */}
+      <div className="glass-dark" style={{
+        padding: "16px 20px 20px",
+        background: "linear-gradient(135deg, #0F1923 0%, #1A2B3A 100%)",
+        borderRadius: "0 0 24px 24px",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+      }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <button onClick={onBack} style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 22, padding: "4px 8px" }}>&#8249;</button>
+          <button onClick={onBack} style={{
+            background: "rgba(255,255,255,0.08)", border: "none", color: "#fff",
+            cursor: "pointer", width: 36, height: 36, borderRadius: 10,
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
           <div style={{ textAlign: "center", flex: 1 }}>
-            <div style={{ fontSize: 18, fontWeight: 700 }}>{trip.name}</div>
-            <button onClick={copyCode} style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "rgba(255,255,255,0.5)", cursor: "pointer", fontSize: 11, padding: "2px 10px", borderRadius: 6, marginTop: 2 }}>Code: {trip.id} (tap to copy)</button>
+            <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px" }}>{trip.name}</div>
+            <button onClick={copyCode} style={{
+              background: "rgba(255,255,255,0.08)", border: "none",
+              color: "rgba(255,255,255,0.5)", cursor: "pointer",
+              fontSize: 11, padding: "3px 12px", borderRadius: 8, marginTop: 4,
+              fontWeight: 500,
+            }}>Code: {trip.id} · tap to copy</button>
           </div>
-          <button onClick={shareWA} style={{ background: "#25D366", border: "none", color: "#fff", cursor: "pointer", fontSize: 11, fontWeight: 600, padding: "6px 12px", borderRadius: 8 }}>Share</button>
+          <button onClick={shareWA} style={{
+            background: "linear-gradient(135deg, #25D366, #128C7E)", border: "none",
+            color: "#fff", cursor: "pointer", fontSize: 11, fontWeight: 700,
+            padding: "8px 14px", borderRadius: 10,
+            boxShadow: "0 2px 8px rgba(37,211,102,0.3)",
+            display: "flex", alignItems: "center", gap: 4,
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg>
+            Share
+          </button>
         </div>
-        <div style={{ marginTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ marginTop: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <MemberAvatars members={trip.members} />
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{trip.members.length} members</span>
+          <span style={{
+            fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 500,
+            background: "rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 6,
+          }}>{trip.members.length} member{trip.members.length !== 1 ? "s" : ""}</span>
         </div>
       </div>
 
@@ -368,46 +707,119 @@ function TripDashboard({ trip, user, onUpdate, onBack }) {
         <Stepper currentStage={currentIdx} lockedStages={lockedStages} />
       </div>
 
-      <div style={{ padding: "4px 20px 12px", borderRadius: 14, overflow: "hidden" }}>
-        <ScenicAvatar stage={lockedStages.length + (allDone ? 1 : 0)} size={90} />
+      <div style={{ padding: "0 20px" }}>
+        <ProgressBanner stage={lockedStages.length + (allDone ? 1 : 0)} destination={trip.stages.destination?.locked} />
       </div>
 
+      {/* All done celebration */}
       {allDone && (
-        <div style={{ margin: "0 20px 16px", padding: 20, background: C.greenPale, borderRadius: 14, textAlign: "center" }} className="fade-in">
-          <div style={{ fontSize: 20, fontWeight: 700, color: C.green }}>Trip confirmed!</div>
-          <div style={{ fontSize: 14, color: C.dark, marginTop: 4 }}>{trip.stages.destination?.locked} &middot; {trip.stages.dates?.locked}</div>
-          <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>{trip.stages.budget?.locked}/person &middot; {inCount} going</div>
-          <button onClick={shareWA} style={{ marginTop: 12, padding: "10px 24px", borderRadius: 10, background: "#25D366", color: "#fff", border: "none", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Share on WhatsApp</button>
+        <div className="fade-in-scale" style={{
+          margin: "0 20px 16px", padding: 24,
+          background: "linear-gradient(135deg, #1B4332, #2D6A4F, #40916C)",
+          borderRadius: "var(--radius-xl)", textAlign: "center",
+          boxShadow: "0 8px 32px rgba(27,67,50,0.3)",
+          position: "relative", overflow: "hidden",
+        }}>
+          <div style={{ position: "absolute", top: -20, left: -20, width: 100, height: 100, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }}/>
+          <div style={{ position: "absolute", bottom: -10, right: -10, width: 80, height: 80, borderRadius: "50%", background: "rgba(255,255,255,0.03)" }}/>
+          <div style={{ position: "relative", zIndex: 1 }}>
+            <div style={{ fontSize: 40, marginBottom: 8 }}>🎉</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px" }}>Trip confirmed!</div>
+            <div style={{ fontSize: 15, color: "rgba(255,255,255,0.8)", marginTop: 6, fontWeight: 500 }}>
+              {trip.stages.destination?.locked} · {trip.stages.dates?.locked}
+            </div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", marginTop: 4 }}>
+              {trip.stages.budget?.locked}/person · {inCount} going
+            </div>
+            <button onClick={shareWA} style={{
+              marginTop: 16, padding: "12px 28px", borderRadius: 14,
+              background: "linear-gradient(135deg, #25D366, #128C7E)",
+              color: "#fff", border: "none", fontSize: 14, fontWeight: 700,
+              cursor: "pointer", boxShadow: "0 4px 16px rgba(37,211,102,0.3)",
+              display: "inline-flex", alignItems: "center", gap: 8,
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg>
+              Share on WhatsApp
+            </button>
+          </div>
         </div>
       )}
 
-      <div style={{ padding: "0 20px 32px" }}>
-        {lockedStages.map(key => (
-          <div key={key} style={{ marginBottom: 8, padding: "12px 16px", background: C.card, borderRadius: 10, border: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <div style={{ fontSize: 10, color: C.green, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>{STAGE_META.find(m => m.key === key)?.label} — locked</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: C.dark, marginTop: 2 }}>{trip.stages[key].locked}</div>
+      <div style={{ padding: "0 20px 40px" }}>
+        {/* Locked stages */}
+        <div className="stagger" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {lockedStages.map(key => (
+            <div key={key} style={{
+              padding: "14px 18px", background: C.card,
+              borderRadius: "var(--radius-md)",
+              border: `1px solid ${C.borderLight}`,
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              boxShadow: "var(--shadow-sm)",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: 8,
+                  background: `linear-gradient(135deg, ${C.greenPale}, rgba(82,183,136,0.15))`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.greenMid} strokeWidth="2.5" strokeLinecap="round"><path d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: C.greenMid, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.8px" }}>
+                    {STAGE_META.find(m => m.key === key)?.label}
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: C.dark, marginTop: 1 }}>{trip.stages[key].locked}</div>
+                </div>
+              </div>
             </div>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={C.green} strokeWidth="2"><path d="M5 13l4 4L19 7"/></svg>
-          </div>
-        ))}
+          ))}
+        </div>
 
+        {/* Active stage */}
         {currentKey && !allDone && (
-          <div style={{ background: C.card, borderRadius: 14, border: `1px solid ${C.border}`, overflow: "hidden", marginTop: 8 }}>
-            <div style={{ padding: "14px 16px", background: "#F8F6F3", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontWeight: 700, fontSize: 15, color: C.dark }}>{STAGE_META[currentIdx].label}</span>
-              <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 8, background: C.amberPale, color: C.amber, fontWeight: 600 }}>Active</span>
+          <div className="fade-in-scale" style={{
+            background: C.card,
+            borderRadius: "var(--radius-xl)",
+            border: `1.5px solid ${C.borderLight}`,
+            overflow: "hidden", marginTop: lockedStages.length > 0 ? 12 : 0,
+            boxShadow: "var(--shadow-md)",
+          }}>
+            <div style={{
+              padding: "16px 20px",
+              background: C.bgWarm,
+              borderBottom: `1px solid ${C.borderLight}`,
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 18 }}>{STAGE_META[currentIdx].emoji}</span>
+                <span style={{ fontWeight: 800, fontSize: 16, color: C.dark, letterSpacing: "-0.3px" }}>{STAGE_META[currentIdx].label}</span>
+              </div>
+              <span style={{
+                fontSize: 11, padding: "4px 12px", borderRadius: 20,
+                background: "linear-gradient(135deg, #FFECD2, #FFE0B2)",
+                color: C.amber, fontWeight: 700,
+                boxShadow: "0 1px 4px rgba(231,111,81,0.15)",
+              }}>Active</span>
             </div>
-            <div style={{ padding: 16 }}>
+            <div style={{ padding: 20 }}>
               {currentKey === "dates" && <DateStage trip={trip} user={user} onUpdate={onUpdate} />}
               {currentKey === "destination" && <DestinationStage trip={trip} user={user} onUpdate={onUpdate} />}
               {currentKey === "budget" && <BudgetStage trip={trip} user={user} onUpdate={onUpdate} />}
               {(currentKey === "plan" || currentKey === "confirm") && <PlanStage trip={trip} user={user} onUpdate={onUpdate} />}
             </div>
             {isPlanner && (
-              <div style={{ padding: "12px 16px", borderTop: `1px solid ${C.border}` }}>
-                <button onClick={() => lockStage(currentKey)} style={{ width: "100%", padding: 13, borderRadius: 10, background: C.green, color: "#fff", border: "none", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
+              <div style={{ padding: "16px 20px", borderTop: `1px solid ${C.borderLight}` }}>
+                <button onClick={() => lockStage(currentKey)} style={{
+                  width: "100%", padding: 15,
+                  borderRadius: "var(--radius-md)",
+                  background: `linear-gradient(135deg, ${C.greenMid}, ${C.green})`,
+                  color: "#fff", border: "none", fontSize: 15, fontWeight: 700,
+                  cursor: "pointer", letterSpacing: "-0.2px",
+                  boxShadow: "0 4px 16px rgba(27,67,50,0.25)",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                }}>
                   Lock {STAGE_META[currentIdx].label} & proceed
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
                 </button>
               </div>
             )}
@@ -415,9 +827,13 @@ function TripDashboard({ trip, user, onUpdate, onBack }) {
         )}
 
         {!isConfigured() && (
-          <div style={{ marginTop: 20, padding: 14, background: "#FFFBE6", borderRadius: 10, border: "1px solid #FFE082" }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "#F57F17", marginBottom: 4 }}>Single-device mode</div>
-            <div style={{ fontSize: 11, color: "#9E9D24" }}>Multi-user sync requires Supabase. See README for 3-minute setup.</div>
+          <div style={{
+            marginTop: 20, padding: 16,
+            background: "linear-gradient(135deg, #FFFDE7, #FFF9C4)",
+            borderRadius: "var(--radius-md)", border: "1px solid #FFE082",
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#F57F17", marginBottom: 4 }}>Single-device mode</div>
+            <div style={{ fontSize: 11, color: "#9E9D24", lineHeight: 1.5 }}>Multi-user sync requires Supabase. See README for 3-minute setup.</div>
           </div>
         )}
       </div>
@@ -438,17 +854,14 @@ export default function App() {
   const [error, setError] = useState("");
   const unsubRef = useRef(null);
 
-  // Check URL for trip code on load
   useEffect(() => {
     const urlTrip = getTripIdFromURL();
     if (urlTrip) setJoinCode(urlTrip);
   }, []);
 
-  // Subscribe to trip updates (Supabase real-time or polling fallback)
   useEffect(() => {
     if (!trip?.id) return;
     if (unsubRef.current) unsubRef.current();
-
     if (isConfigured()) {
       unsubRef.current = subscribeTripUpdates(trip.id, (fresh) => {
         if (JSON.stringify(fresh) !== JSON.stringify(trip)) setTrip(fresh);
@@ -460,7 +873,6 @@ export default function App() {
       }, 2000);
       unsubRef.current = () => clearInterval(interval);
     }
-
     return () => { if (unsubRef.current) unsubRef.current(); };
   }, [trip]);
 
@@ -517,30 +929,152 @@ export default function App() {
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column" }}>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
-        <div style={{ marginBottom: 8, borderRadius: 12, overflow: "hidden" }}><ScenicAvatar stage={3} size={64} /></div>
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: C.dark, marginBottom: 2, letterSpacing: -0.5 }}>Plan Karo Chalo</h1>
-        <p style={{ fontSize: 13, color: C.muted, marginBottom: 28, textAlign: "center", lineHeight: 1.6 }}>Group trips, decided together.<br/>No app download. No chaos.</p>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 20px" }}>
+        {/* Hero */}
+        <div className="fade-in-up" style={{ textAlign: "center", marginBottom: 32 }}>
+          <div style={{
+            width: 72, height: 72, borderRadius: 20,
+            background: "linear-gradient(135deg, #1B4332, #2D6A4F, #40916C)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            margin: "0 auto 16px",
+            boxShadow: "0 8px 32px rgba(27,67,50,0.25)",
+          }}>
+            <span style={{ fontSize: 36 }}>🗺</span>
+          </div>
+          <h1 style={{
+            fontSize: 30, fontWeight: 900, color: C.dark,
+            marginBottom: 6, letterSpacing: "-1px",
+            lineHeight: 1.1,
+          }}>
+            Plan Karo<br/>
+            <span className="gradient-text">Chalo</span>
+          </h1>
+          <p style={{
+            fontSize: 14, color: C.muted, marginBottom: 0,
+            textAlign: "center", lineHeight: 1.6, fontWeight: 500,
+            maxWidth: 260, margin: "0 auto",
+          }}>
+            Group trips, decided together.<br/>No app download. No chaos.
+          </p>
+        </div>
 
-        <div style={{ width: "100%", maxWidth: 360 }}>
-          <input value={userName} onChange={e => { setUserName(e.target.value); setError(""); }} placeholder="Your name" style={{ width: "100%", padding: "12px 16px", borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 15, outline: "none", marginBottom: 10, background: "#fff", boxSizing: "border-box" }} />
-
-          <div style={{ background: C.card, borderRadius: 14, border: `1px solid ${C.border}`, padding: 20, marginBottom: 12 }}>
-            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12, color: C.dark }}>Start a new trip</div>
-            <input value={tripName} onChange={e => { setTripName(e.target.value); setError(""); }} placeholder='Trip name (e.g. "Goa June")' style={{ width: "100%", padding: "11px 14px", borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, outline: "none", marginBottom: 10, boxSizing: "border-box" }} />
-            <button onClick={createTrip} disabled={loading} style={{ width: "100%", padding: 13, borderRadius: 10, background: C.green, color: "#fff", border: "none", fontSize: 15, fontWeight: 700, cursor: "pointer", opacity: loading ? 0.6 : 1 }}>{loading ? "Creating..." : "Create trip"}</button>
+        <div className="fade-in-up" style={{ width: "100%", maxWidth: 380, animationDelay: "100ms" }}>
+          {/* Name input */}
+          <div style={{
+            marginBottom: 14, position: "relative",
+          }}>
+            <input value={userName} onChange={e => { setUserName(e.target.value); setError(""); }} placeholder="Your name" style={{
+              width: "100%", padding: "14px 18px 14px 46px",
+              borderRadius: "var(--radius-md)",
+              border: `1.5px solid ${C.border}`,
+              fontSize: 15, outline: "none", background: "#fff",
+              boxSizing: "border-box", fontWeight: 500,
+              boxShadow: "var(--shadow-sm)",
+            }} />
+            <div style={{
+              position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)",
+              color: C.mutedLight,
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
           </div>
 
-          <div style={{ background: C.card, borderRadius: 14, border: `1px solid ${C.border}`, padding: 20 }}>
-            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12, color: C.dark }}>Join a trip</div>
-            <input value={joinCode} onChange={e => { setJoinCode(e.target.value.toUpperCase()); setError(""); }} placeholder="Enter 6-letter code" maxLength={6} style={{ width: "100%", padding: "11px 14px", borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, outline: "none", marginBottom: 10, letterSpacing: 3, textTransform: "uppercase", textAlign: "center", fontWeight: 700, boxSizing: "border-box" }} />
-            <button onClick={joinTrip} disabled={loading} style={{ width: "100%", padding: 13, borderRadius: 10, background: C.amber, color: "#fff", border: "none", fontSize: 15, fontWeight: 700, cursor: "pointer", opacity: loading ? 0.6 : 1 }}>{loading ? "Joining..." : "Join trip"}</button>
+          {/* Create trip card */}
+          <div style={{
+            background: C.card, borderRadius: "var(--radius-xl)",
+            border: `1px solid ${C.borderLight}`,
+            padding: 24, marginBottom: 14,
+            boxShadow: "var(--shadow-md)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: 10,
+                background: `linear-gradient(135deg, ${C.greenPale}, rgba(82,183,136,0.2))`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <span style={{ fontSize: 18 }}>✈</span>
+              </div>
+              <span style={{ fontWeight: 800, fontSize: 16, color: C.dark, letterSpacing: "-0.3px" }}>Start a new trip</span>
+            </div>
+            <input value={tripName} onChange={e => { setTripName(e.target.value); setError(""); }} placeholder='Trip name (e.g. "Goa June")' style={{
+              width: "100%", padding: "13px 16px",
+              borderRadius: "var(--radius-sm)",
+              border: `1.5px solid ${C.border}`,
+              fontSize: 14, outline: "none", marginBottom: 12,
+              boxSizing: "border-box", fontWeight: 500,
+            }} />
+            <button onClick={createTrip} disabled={loading} style={{
+              width: "100%", padding: 15,
+              borderRadius: "var(--radius-md)",
+              background: `linear-gradient(135deg, ${C.greenMid}, ${C.green})`,
+              color: "#fff", border: "none", fontSize: 15, fontWeight: 700,
+              cursor: "pointer", opacity: loading ? 0.6 : 1,
+              boxShadow: "0 4px 16px rgba(27,67,50,0.25)",
+              letterSpacing: "-0.2px",
+            }}>
+              {loading ? "Creating..." : "Create trip"}
+            </button>
           </div>
 
-          {error && <div style={{ marginTop: 12, padding: 10, background: "#FFEBEB", borderRadius: 8, fontSize: 13, color: "#C62828", textAlign: "center" }}>{error}</div>}
+          {/* Join trip card */}
+          <div style={{
+            background: C.card, borderRadius: "var(--radius-xl)",
+            border: `1px solid ${C.borderLight}`,
+            padding: 24,
+            boxShadow: "var(--shadow-md)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: 10,
+                background: `linear-gradient(135deg, ${C.amberPale}, rgba(244,162,97,0.2))`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <span style={{ fontSize: 18 }}>🤝</span>
+              </div>
+              <span style={{ fontWeight: 800, fontSize: 16, color: C.dark, letterSpacing: "-0.3px" }}>Join a trip</span>
+            </div>
+            <input value={joinCode} onChange={e => { setJoinCode(e.target.value.toUpperCase()); setError(""); }} placeholder="Enter 6-letter code" maxLength={6} style={{
+              width: "100%", padding: "13px 16px",
+              borderRadius: "var(--radius-sm)",
+              border: `1.5px solid ${C.border}`,
+              fontSize: 16, outline: "none", marginBottom: 12,
+              letterSpacing: 6, textTransform: "uppercase",
+              textAlign: "center", fontWeight: 800,
+              boxSizing: "border-box",
+            }} />
+            <button onClick={joinTrip} disabled={loading} style={{
+              width: "100%", padding: 15,
+              borderRadius: "var(--radius-md)",
+              background: `linear-gradient(135deg, ${C.amber}, ${C.amberLight})`,
+              color: "#fff", border: "none", fontSize: 15, fontWeight: 700,
+              cursor: "pointer", opacity: loading ? 0.6 : 1,
+              boxShadow: "0 4px 16px rgba(231,111,81,0.25)",
+              letterSpacing: "-0.2px",
+            }}>
+              {loading ? "Joining..." : "Join trip"}
+            </button>
+          </div>
+
+          {error && (
+            <div className="fade-in" style={{
+              marginTop: 14, padding: "12px 16px",
+              background: "linear-gradient(135deg, #FFEBEE, #FCE4EC)",
+              borderRadius: "var(--radius-sm)",
+              fontSize: 13, color: "#C62828", textAlign: "center",
+              fontWeight: 600, border: "1px solid #FFCDD2",
+            }}>{error}</div>
+          )}
         </div>
       </div>
-      <div style={{ textAlign: "center", padding: "16px 0 24px", fontSize: 11, color: C.muted }}>Built for Indian friend groups &middot; Zero downloads &middot; Share via WhatsApp</div>
+
+      {/* Footer */}
+      <div style={{
+        textAlign: "center", padding: "16px 20px 28px",
+        fontSize: 11, color: C.mutedLight, fontWeight: 500,
+        lineHeight: 1.6,
+      }}>
+        Built for Indian friend groups · Zero downloads · Share via WhatsApp
+      </div>
     </div>
   );
 }
